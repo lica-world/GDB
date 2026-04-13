@@ -11,6 +11,7 @@ Quick start::
     model = load_model("openai", model_id="gpt-4o", api_key="sk-...")
     model = load_model("anthropic", model_id="claude-sonnet-4-20250514")
     model = load_model("hf", model_id="google/gemma-3-4b-it", device="cuda")
+    model = load_model("custom", entrypoint="my_models.wrapper:build_model")
 """
 
 from .base import BaseModel, Modality

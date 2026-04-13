@@ -5028,10 +5028,6 @@ class LayerAwareObjectInsertion(BaseBenchmark):
                 or row.get("ground_truth")
             )
 
-            if not masked_layout or not mask or not reference_asset or not gt_image:
-                logger.warning("Incomplete G15 sample at index %d, skipping", i)
-                continue
-
             mode = str(row.get("mode") or "reference").strip().lower()
             if mode not in self.VALID_MODES:
                 logger.warning(
@@ -5040,12 +5036,24 @@ class LayerAwareObjectInsertion(BaseBenchmark):
                 )
                 mode = "reference"
 
+            requires_reference_asset = mode == "reference"
+            if not masked_layout or not mask or not gt_image:
+                logger.warning("Incomplete G15 sample at index %d, skipping", i)
+                continue
+            if requires_reference_asset and not reference_asset:
+                logger.warning(
+                    "Reference-mode G15 sample at index %d is missing reference asset, skipping",
+                    i,
+                )
+                continue
+
             sid = str(row.get("sample_id") or f"g15_insert_{i:04d}")
             reference_asset_alt = self._resolve_reference_asset_alt(
                 base_dir=base_dir,
                 row=row,
                 sample_id=sid,
             )
+            reference_asset_path = self._resolve(base_dir, str(reference_asset)) if reference_asset else ""
 
             default_prompt = (
                 self.DEFAULT_PROMPT_DESCRIPTION if mode == "description"
@@ -5063,14 +5071,14 @@ class LayerAwareObjectInsertion(BaseBenchmark):
                     "mode": mode,
                     "input_image": self._resolve(base_dir, str(masked_layout)),
                     "mask": self._resolve(base_dir, str(mask)),
-                    "reference_asset": self._resolve(base_dir, str(reference_asset)),
+                    "reference_asset": reference_asset_path,
                     "reference_asset_alt": reference_asset_alt,
                     "prompt": prompt,
                     "context": context,
                     "ground_truth": {
                         "image": self._resolve(base_dir, str(gt_image)),
                         "mask": self._resolve(base_dir, str(mask)),
-                        "reference_asset": self._resolve(base_dir, str(reference_asset)),
+                        "reference_asset": reference_asset_path,
                         "reference_asset_alt": reference_asset_alt,
                         "prompt": prompt,
                     },

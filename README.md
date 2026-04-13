@@ -75,11 +75,63 @@ python scripts/run_benchmarks.py --benchmarks svg-1 \
 python scripts/run_benchmarks.py --benchmarks temporal-1 \
     --provider gemini \
     --dataset-root data/lica-benchmarks-dataset
+
+# User custom python model entrypoint
+python scripts/run_benchmarks.py --benchmarks svg-1 \
+    --provider custom --custom-entry my_models.wrapper:build_model \
+    --custom-init-kwargs '{"checkpoint":"/models/foo"}' \
+    --dataset-root data/lica-benchmarks-dataset
+
+# Local default VLM/LLM (defaults now use Qwen3-VL-4B-Instruct)
+python scripts/run_benchmarks.py --benchmarks svg-1 \
+    --provider hf --device auto \
+    --dataset-root data/lica-benchmarks-dataset
+
+# Diffusion / image generation (defaults now use FLUX.2 klein 4B)
+python scripts/run_benchmarks.py --benchmarks layout-1 \
+    --provider diffusion \
+    --dataset-root data/lica-benchmarks-dataset
+
+# Image-generation / editing task with a custom wrapper
+python scripts/run_benchmarks.py --benchmarks typography-7 \
+    --provider custom --custom-entry my_models.image_wrapper:build_model \
+    --custom-modality image_generation \
+    --dataset-root data/lica-benchmarks-dataset
+
+# Official FLUX.2 wrapper via the existing custom provider
+python -m pip install --no-deps --ignore-requires-python \
+    "git+https://github.com/black-forest-labs/flux2.git"
+python scripts/run_benchmarks.py --benchmarks layout-1 layout-3 layout-8 typography-7 typography-8 \
+    --provider custom \
+    --custom-entry design_benchmarks.models.local_models:Flux2Model \
+    --custom-init-kwargs '{"model_name":"flux.2-klein-4b"}' \
+    --custom-modality image_generation \
+    --dataset-root data/lica-benchmarks-dataset
 ```
+
+`--custom-entry` must point to an importable Python module attribute. In practice,
+that means your wrapper is either installed in the environment or reachable via
+`PYTHONPATH`.
+
+For image-output tasks, prefer `--custom-modality image_generation`. If your
+wrapper uses source images or masks, expose capability attributes such as
+`supports_image_output`, `supports_image_input`, and `supports_mask_editing`
+so preflight warnings can distinguish text-to-image from image-edit/inpaint models.
+
+`design_benchmarks.models.local_models:Flux2Model` keeps using the existing
+`custom` provider, so no extra CLI provider is required. The official FLUX.2
+weights currently also require access to the gated
+`black-forest-labs/FLUX.2-dev` autoencoder (`ae.safetensors`); export
+`HF_TOKEN` / `HF_HUB_TOKEN` before running, or set `AE_MODEL_PATH` to a local
+copy of that file after approval.
+
+The default local model ID for both `hf` and `vllm` is now
+`Qwen/Qwen3-VL-4B-Instruct`, which can cover both text-only and image-input
+benchmarks. The default `diffusion` model ID is now `flux.2-klein-4b`.
 
 Use the same **`--dataset-root`** (Lica bundle root) for stub runs, API runs, and **`--batch-submit`** so paths inside CSVs/JSON resolve correctly.
 
-See [scripts/README.md](scripts/README.md) for batch submit/collect, vLLM, HuggingFace, multi-model comparison, config files, and all CLI flags.
+See [scripts/README.md](scripts/README.md) for batch submit/collect, vLLM, HuggingFace, user model entrypoints, multi-model config files, and all CLI flags.
 
 ### 5. API keys
 
@@ -201,6 +253,7 @@ See **[docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)** for:
 
 - Some metrics (LPIPS, CLIP score, SSIM, CIEDE2000) need heavier extras (`.[svg-metrics]`, `.[lottie-metrics]`, `.[layout-metrics]`). The full `.[layout-metrics]` stack is enabled on Linux with Python < 3.12. Metrics whose dependencies are unavailable are omitted from the output (with a logged warning).
 - **`--provider`** picks which backend runs the model (OpenAI, Gemini, Anthropic, etc.); **`--model-id`** is only the catalog string for *that* backend (it does not select the provider). If you omit **`--model-id`**, the default for the chosen provider is used (see `DEFAULT_MODEL_IDS` in `scripts/run_benchmarks.py`). With **`--multi-models`**, each entry is **`provider:model_id`** so both are explicit. Use a **`--model-id`** your account actually exposes (README examples may name newer IDs such as `gpt-5.4`).
+- For local/open-source models, **`--model-id`** may be either a hub ID or a local checkpoint directory if the underlying backend supports it. If the model name/path does not make its modality obvious, set **`--model-modality text`** or **`--model-modality text_and_image`** explicitly.
 
 ## Models
 
@@ -213,6 +266,7 @@ See **[docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)** for:
 | vLLM | `.[vllm]` | `--provider vllm` |
 | Diffusion | `.[vllm-omni]` | `--provider diffusion` |
 | OpenAI Image | `.[openai]` | `--provider openai_image` |
+| Custom Entrypoint | (your code) | `--provider custom --custom-entry module:attr` |
 
 ### Evaluation extras
 
