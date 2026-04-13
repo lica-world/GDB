@@ -5,22 +5,22 @@ Guide for anyone adding a new benchmark task or a new domain. Read this before w
 ## How the repo fits together
 
 ```
-scripts/download_data.py    →  data/lica-benchmarks-dataset/   (lica-data/ + benchmarks/<domain>/)
+scripts/download_data.py    →  data/gdb-dataset/   (lica-data/ + benchmarks/<domain>/)
 scripts/run_benchmarks.py   →  load_data → inference → evaluate
 ```
 
 | File / directory | Role |
 |------------------|------|
-| `src/design_benchmarks/tasks/*.py` | One file per domain. Contains `@benchmark` classes. |
-| `src/design_benchmarks/base.py` | `BaseBenchmark`, `BenchmarkMeta`, `TaskType`, `@benchmark` decorator. |
-| `src/design_benchmarks/registry.py` | Auto-discovers all `@benchmark` classes via `pkgutil.walk_packages`. |
-| `scripts/run_benchmarks.py` | Runs benchmarks (`--dataset-root` required; `--data` optional). `--list` shows **ready**. |
-| `src/design_benchmarks/metrics/` | Reusable metric functions (IoU, FID, SSIM, LPIPS, edit distance, font-name normalisation). |
-| `src/design_benchmarks/utils/` | Shared helpers (image array handling, text cleanup, layout path resolution). |
+| `src/gdb/tasks/*.py` | One file per domain. Contains `@benchmark` classes. |
+| `src/gdb/base.py` | `BaseBenchmark`, `BenchmarkMeta`, `TaskType`, `@benchmark` decorator. |
+| `src/gdb/registry.py` | Auto-discovers all `@benchmark` classes via `pkgutil.walk_packages`. |
+| `scripts/run_benchmarks.py` | Runs benchmarks (`--dataset-root` for local data, or omit to load from HuggingFace). `--list` shows **ready**. |
+| `src/gdb/metrics/` | Reusable metric functions (IoU, FID, SSIM, LPIPS, edit distance, font-name normalisation). |
+| `src/gdb/utils/` | Shared helpers (image array handling, text cleanup, layout path resolution). |
 
-## Benchmark dataset layout (`lica-benchmarks-dataset/`)
+## Benchmark dataset layout (`gdb-dataset/`)
 
-The download / release zip unpacks to **`lica-benchmarks-dataset/`** with:
+The download / release zip unpacks to **`gdb-dataset/`** with:
 
 - **`lica-data/`** — core Lica tree (`metadata.csv`, `layouts/`, `images/`, `annotations/`).
 - **`benchmarks/<domain>/`** — evaluation inputs for each domain.
@@ -32,11 +32,11 @@ Rules:
 - **`meta.domain`** names the task module and often matches a top-level `benchmarks/<domain>/` folder. Set **`meta.data_subpath`** when inputs live in a subfolder (e.g. `layout/…`, or under `image/…`).
 - CSV `image_path` values are **relative to `--dataset-root`** (e.g. `lica-data/images/…`). The framework resolves them automatically.
 
-Full details in the root [README.md](../README.md#benchmark-dataset-layout).
+Full details in the root [README.md](../README.md#dataset-layout).
 
 ## Adding a benchmark to an existing domain
 
-1. Open `src/design_benchmarks/tasks/<domain>.py` (e.g. `layout.py`). Set **`data_subpath`** on `BenchmarkMeta` to the folder under `benchmarks/` that holds this task's files, or omit it when `benchmarks/<domain>/` is correct.
+1. Open `src/gdb/tasks/<domain>.py` (e.g. `layout.py`). Set **`data_subpath`** on `BenchmarkMeta` to the folder under `benchmarks/` that holds this task's files, or omit it when `benchmarks/<domain>/` is correct.
 
 2. Add a class:
 
@@ -44,7 +44,7 @@ Full details in the root [README.md](../README.md#benchmark-dataset-layout).
 from pathlib import Path
 from typing import Union
 
-from design_benchmarks.base import BaseBenchmark, BenchmarkMeta, TaskType, benchmark
+from gdb.base import BaseBenchmark, BenchmarkMeta, TaskType, benchmark
 
 @benchmark
 class MyNewTask(BaseBenchmark):
@@ -67,7 +67,7 @@ class MyNewTask(BaseBenchmark):
         ...
 
     def build_model_input(self, sample, *, modality=None):
-        from design_benchmarks.models.base import ModelInput
+        from gdb.models.base import ModelInput
         return ModelInput(text="...", images=[sample["image_path"]])
 
     def evaluate(self, predictions, ground_truth):
@@ -96,13 +96,13 @@ python scripts/run_benchmarks.py --list | grep layout-9
 - **ID format:** `<domain>-<n>` (e.g. `layout-9`, `temporal-6`). **Ids must be unique** in the whole registry. When adding a task, use the next unused `<n>` in that domain (no gaps in the shipped set).
 - **`domain` field** should match the `tasks/*.py` filename. **`data_subpath`** (if set) must match the folder layout under `benchmarks/` in the dataset release.
 - **All tasks must be fully implemented** — `load_data`, `build_model_input`, and `evaluate` must be real implementations with `pipeline_implemented = True`.
-- **Auto-discovery**: the registry uses `pkgutil.walk_packages` on the `design_benchmarks` package. You do **not** edit `registry.py` or import your class anywhere — just decorate with `@benchmark` and it is found.
+- **Auto-discovery**: the registry uses `pkgutil.walk_packages` on the `gdb` package. You do **not** edit `registry.py` or import your class anywhere — just decorate with `@benchmark` and it is found.
 
 ## Creating a new domain
 
 If your benchmarks don't fit an existing file:
 
-1. Add `src/design_benchmarks/tasks/<new_domain>.py`.
+1. Add `src/gdb/tasks/<new_domain>.py`.
 2. Put `@benchmark` classes inside (same pattern as above).
 3. Update the domain table in `README.md`.
 4. Ship the corresponding `benchmarks/<new_domain>/` layout in the Lica dataset release, and document it in the task module docstrings.
@@ -111,7 +111,7 @@ Keep cross-imports between task modules minimal; use lazy imports inside methods
 
 ## Metrics and evaluation
 
-- Reuse metrics under `src/design_benchmarks/metrics/` when possible.
+- Reuse metrics under `src/gdb/metrics/` when possible.
 - If you add a new metric family, keep it in a small focused module with light imports (optional dependencies stay optional).
 - Your `evaluate()` should return metric names that match `BenchmarkMeta.metrics`.
 
@@ -131,7 +131,8 @@ Available extras:
 | `metrics` | scipy, sklearn, scikit-image, Pillow, cairosvg |
 | `svg-metrics` | metrics + torch, transformers, lpips |
 | `lottie-metrics` | metrics + rlottie-python |
-| `layout-metrics` | torch, transformers, pyiqa, hpsv2, hpsv3, dreamsim, image-reward |
+| `layout-metrics` | metrics + torch, transformers, pyiqa, hpsv2, hpsv3, dreamsim, image-reward |
+| `hub` | datasets, Pillow (load from HuggingFace without local data) |
 
 See `pyproject.toml` `[project.optional-dependencies]` for the full list.
 
@@ -141,7 +142,7 @@ See `pyproject.toml` `[project.optional-dependencies]` for the full list.
 
 ```bash
 # 1. Edit the task file
-#    Add @benchmark class to src/design_benchmarks/tasks/layout.py
+#    Add @benchmark class to src/gdb/tasks/layout.py
 
 # 2. Check registration
 pip install -e .
@@ -154,15 +155,15 @@ python scripts/download_data.py
 
 # 5. Stub run (after setting data_subpath for layout-9)
 python scripts/run_benchmarks.py --stub-model --benchmarks layout-9 \
-    --dataset-root data/lica-benchmarks-dataset --n 5
+    --dataset-root data/gdb-dataset --n 5
 
 # Or pass --data explicitly:
-#   --data data/lica-benchmarks-dataset/benchmarks/layout/MyTaskFolder
+#   --data data/gdb-dataset/benchmarks/layout/MyTaskFolder
 
 # 6. Real run
 python scripts/run_benchmarks.py --benchmarks layout-9 \
     --provider openai --model-id gpt-5.4 \
-    --dataset-root data/lica-benchmarks-dataset --n 5
+    --dataset-root data/gdb-dataset --n 5
 ```
 
 ## PR checklist

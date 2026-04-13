@@ -5,24 +5,28 @@
 ### `download_data.py` — fetch the benchmark bundle
 
 ```bash
-python scripts/download_data.py                            # → data/lica-benchmarks-dataset/
+python scripts/download_data.py                            # → data/gdb-dataset/
 python scripts/download_data.py --out-dir /tmp             # custom parent directory
 python scripts/download_data.py --from-zip ~/release.zip   # local zip
 ```
 
-The layout is described in the root [README](../README.md#benchmark-dataset-layout): **`lica-data/`** (core Lica tree) and **`benchmarks/<domain>/`** (task inputs).
+The layout is described in the root [README](../README.md#dataset-layout): **`lica-data/`** (core Lica tree) and **`benchmarks/<domain>/`** (task inputs).
 
 ## `run_benchmarks.py`
 
 Single entry point for all benchmark operations.
 
-### Downloaded data + stub model (no API keys)
+### Data loading
 
-Use **`--stub-model`** with **`--dataset-root`** pointing at the Lica bundle root. Task directories under **`benchmarks/`** come from each benchmark's metadata; use **`--data`** for a custom path.
+`--dataset-root` is optional. Without it, data is streamed from [HuggingFace](https://huggingface.co/datasets/lica-world/GDB) (requires `pip install -e ".[hub]"`). For full benchmark coverage or offline use, download locally first with `download_data.py` and pass `--dataset-root data/gdb-dataset`.
 
 ```bash
+# HuggingFace (no download needed)
+python scripts/run_benchmarks.py --stub-model --benchmarks category-1 --n 5
+
+# Local data
 python scripts/run_benchmarks.py --stub-model --benchmarks layout-3 \
-    --dataset-root data/lica-benchmarks-dataset --n 5
+    --dataset-root data/gdb-dataset --n 5
 ```
 
 ### Standard run
@@ -30,48 +34,48 @@ python scripts/run_benchmarks.py --stub-model --benchmarks layout-3 \
 ```bash
 # API model
 python scripts/run_benchmarks.py --benchmarks svg-1 \
-    --provider gemini --dataset-root data/lica-benchmarks-dataset
+    --provider gemini --dataset-root data/gdb-dataset
 
 # Local HuggingFace model
 python scripts/run_benchmarks.py --benchmarks svg-6 \
     --provider hf --model-id Qwen/Qwen3-VL-4B-Instruct --device auto \
-    --dataset-root data/lica-benchmarks-dataset
+    --dataset-root data/gdb-dataset
 
 # Local vLLM (GPU, with sampling params)
 python scripts/run_benchmarks.py --benchmarks svg-6 \
     --provider vllm --model-id Qwen/Qwen3-VL-4B-Instruct --top-k 20 --top-p 0.8 \
-    --dataset-root data/lica-benchmarks-dataset
+    --dataset-root data/gdb-dataset
 
 # Diffusion / image generation (defaults to FLUX.2 klein 4B)
 python scripts/run_benchmarks.py --benchmarks layout-1 \
     --provider diffusion \
-    --dataset-root data/lica-benchmarks-dataset
+    --dataset-root data/gdb-dataset
 
 # User custom python model entrypoint
 python scripts/run_benchmarks.py --benchmarks svg-1 \
     --provider custom --custom-entry my_models.wrapper:build_model \
     --custom-init-kwargs '{"checkpoint":"/models/foo","temperature":0.0}' \
-    --dataset-root data/lica-benchmarks-dataset
+    --dataset-root data/gdb-dataset
 
 # Image-generation / editing task with a custom wrapper
 python scripts/run_benchmarks.py --benchmarks layout-3 \
     --provider custom --custom-entry my_models.image_wrapper:build_model \
     --custom-modality image_generation \
-    --dataset-root data/lica-benchmarks-dataset
+    --dataset-root data/gdb-dataset
 
 # Official FLUX.2 wrapper via the existing custom provider
 python -m pip install --no-deps --ignore-requires-python \
     "git+https://github.com/black-forest-labs/flux2.git"
 python scripts/run_benchmarks.py --benchmarks layout-1 layout-3 layout-8 typography-7 typography-8 \
     --provider custom \
-    --custom-entry design_benchmarks.models.local_models:Flux2Model \
+    --custom-entry gdb.models.local_models:Flux2Model \
     --custom-init-kwargs '{"model_name":"flux.2-klein-4b"}' \
     --custom-modality image_generation \
-    --dataset-root data/lica-benchmarks-dataset
+    --dataset-root data/gdb-dataset
 
 # JSON config file (CLI args override config values)
 python scripts/run_benchmarks.py --benchmarks svg-6 --config my_run_config.json \
-    --dataset-root data/lica-benchmarks-dataset
+    --dataset-root data/gdb-dataset
 
 ```
 
@@ -90,7 +94,7 @@ returned object so preflight warnings stay accurate:
 `supports_image_output`, `supports_image_input`, `supports_mask_editing`,
 `supports_video_output`.
 
-The built-in `design_benchmarks.models.local_models:Flux2Model` wrapper also
+The built-in `gdb.models.local_models:Flux2Model` wrapper also
 uses this `custom` path. FLUX.2 weights and the shared autoencoder are fetched
 from Hugging Face and can use either environment tokens (`HF_TOKEN`,
 `HF_HUB_TOKEN`) or an existing cached login/token file.
@@ -101,9 +105,9 @@ The default local text/VLM model ID is now `Qwen/Qwen3-VL-4B-Instruct` for both
 ### Batch submit/collect (~50% cheaper)
 
 ```bash
-export DESIGN_BENCHMARKS_GCS_BUCKET=your-bucket
+export GDB_GCS_BUCKET=your-bucket
 python scripts/run_benchmarks.py --benchmarks svg-1 \
-    --provider gemini --dataset-root data/lica-benchmarks-dataset --batch-submit
+    --provider gemini --dataset-root data/gdb-dataset --batch-submit
 
 python scripts/run_benchmarks.py --collect jobs/job_20260316_120000_gemini.json
 ```

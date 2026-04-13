@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff
+      - run: ruff check src/ scripts/
+
+  test-import:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e .
+      - name: Smoke test
+        run: |
+          python -c "
+          from gdb import BenchmarkRegistry
+          reg = BenchmarkRegistry()
+          reg.discover()
+          ids = reg.list_ids()
+          assert len(ids) == 39, f'Expected 39 benchmarks, got {len(ids)}'
+          "
+          python scripts/run_benchmarks.py --list

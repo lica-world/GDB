@@ -1,25 +1,25 @@
 #!/usr/bin/env python3
-"""CLI to list and run design benchmarks (stub model, API providers, batch APIs).
+"""CLI to list and run GDB benchmarks (stub model, API providers, batch APIs).
 
 Usage:
     # Stub smoke test (no API keys)
     python scripts/run_benchmarks.py --stub-model --benchmarks layout-4 layout-5 \\
-        --dataset-root data/lica-benchmarks-dataset --n 5
+        --dataset-root data/gdb-dataset --n 5
 
     # API run (shipped Lica layout)
     python scripts/run_benchmarks.py --benchmarks svg-1 \\
         --provider gemini --credentials auth/google-cloud-key.json \\
-        --dataset-root data/lica-benchmarks-dataset
+        --dataset-root data/gdb-dataset
 
     python scripts/run_benchmarks.py --benchmarks layout-1 \\
         --provider openai_image --model-id gpt-image-1.5 \\
-        --data /path/to/custom/layout2_folder --dataset-root data/lica-benchmarks-dataset \\
+        --data /path/to/custom/layout2_folder --dataset-root data/gdb-dataset \\
         --n 200 -o outputs/baseline.json
 
     # Batch submit (~50% cheaper, fire-and-forget)
     python scripts/run_benchmarks.py --batch-submit --benchmarks svg-1 \\
         --provider gemini --credentials /path/to/credentials.json \\
-        --dataset-root data/lica-benchmarks-dataset
+        --dataset-root data/gdb-dataset
 
     # Collect results from a previous submit
     python scripts/run_benchmarks.py --collect jobs/job_manifest.json
@@ -42,7 +42,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 SRC_ROOT = REPO_ROOT / "src"
 
 try:
-    from design_benchmarks import (
+    from gdb import (
         BaseBenchmark,
         BenchmarkRegistry,
         BenchmarkRunner,
@@ -52,7 +52,7 @@ except ModuleNotFoundError:
     if str(SRC_ROOT) not in sys.path:
         sys.path.append(str(SRC_ROOT))
     try:
-        from design_benchmarks import (
+        from gdb import (
             BaseBenchmark,
             BenchmarkRegistry,
             BenchmarkRunner,
@@ -60,7 +60,7 @@ except ModuleNotFoundError:
         )
     except ModuleNotFoundError as exc:
         print(
-            "Package 'lica-bench' is not installed. From the repository root run:\n"
+            "Package 'gdb' is not installed. From the repository root run:\n"
             "  pip install -e .\n",
             file=sys.stderr,
         )
@@ -90,7 +90,7 @@ DEFAULT_MODEL_IDS = {
 
 
 def _make_stub_model() -> Any:
-    from design_benchmarks.models.base import BaseModel, Modality, ModelOutput
+    from gdb.models.base import BaseModel, Modality, ModelOutput
 
     class StubModel(BaseModel):
         name = "stub"
@@ -156,7 +156,7 @@ def _resolve_model_modality(
 def _build_model_from_parts(
     provider: str, model_id: str, args: argparse.Namespace
 ) -> Any:
-    from design_benchmarks.models import load_model
+    from gdb.models import load_model
 
     if provider == "custom":
         entrypoint = (
@@ -269,7 +269,7 @@ def _collect_preflight_warnings(
     models: Dict[str, Any],
 ) -> List[str]:
     """Return compatibility warnings before running expensive benchmarks."""
-    from design_benchmarks.models.base import Modality
+    from gdb.models.base import Modality
 
     def _supports_image_output(model: Any, modality: Any) -> bool:
         return bool(
@@ -424,8 +424,10 @@ def cmd_run(
         try:
             if data_override:
                 data_path = data_override
-            else:
+            elif dataset_root:
                 data_path = str(bench.resolve_data_dir(dataset_root))
+            else:
+                data_path = "HuggingFace Hub"
         except FileNotFoundError as exc:
             print(f"  FAILED: {exc}")
             all_ok = False
@@ -487,7 +489,7 @@ def cmd_submit(
     benchmark_id: str,
     args: argparse.Namespace,
 ) -> bool:
-    from design_benchmarks.inference import make_batch_runner, save_job_manifest
+    from gdb.inference import make_batch_runner, save_job_manifest
 
     model_id = _model_name(args)
     runner = BenchmarkRunner(registry)
@@ -506,11 +508,12 @@ def cmd_submit(
     batch_runner = make_batch_runner(args.provider, **batch_kwargs)
 
     bench = registry.get(benchmark_id)
-    data_display = (
-        args.data
-        if args.data
-        else str(bench.resolve_data_dir(args.dataset_root))
-    )
+    if args.data:
+        data_display = args.data
+    elif args.dataset_root:
+        data_display = str(bench.resolve_data_dir(args.dataset_root))
+    else:
+        data_display = "HuggingFace Hub"
 
     print(f"\n[{benchmark_id}] {bench.meta.name}")
     print(f"  data: {data_display}")
@@ -546,7 +549,7 @@ def cmd_submit(
 
 
 def cmd_collect(args: argparse.Namespace) -> bool:
-    from design_benchmarks.inference import load_job_manifest, make_batch_runner
+    from gdb.inference import load_job_manifest, make_batch_runner
 
     manifest = load_job_manifest(args.collect)
     provider = manifest["provider"]
@@ -743,7 +746,7 @@ def main() -> None:
     parser.add_argument(
         "--bucket",
         default=None,
-        help="GCS bucket for batch image uploads (or set DESIGN_BENCHMARKS_GCS_BUCKET)",
+        help="GCS bucket for batch image uploads (or set GDB_GCS_BUCKET)",
     )
     parser.add_argument("--poll-interval", type=int, default=30)
 
@@ -767,7 +770,7 @@ def main() -> None:
         "--dataset-root",
         required=False,
         default=None,
-        help="Lica bundle root (lica-data/ + benchmarks/). Required for runs.",
+        help="Lica bundle root (lica-data/ + benchmarks/). If omitted, loads from HuggingFace.",
     )
     parser.add_argument("--n", type=int, default=None)
     parser.add_argument(
@@ -825,7 +828,7 @@ def main() -> None:
         sys.exit(0 if cmd_collect(args) else 1)
 
     if args.batch_submit:
-        from design_benchmarks.inference import BATCH_PROVIDERS
+        from gdb.inference import BATCH_PROVIDERS
 
         if not args.provider:
             parser.error("--provider required")
@@ -835,11 +838,11 @@ def main() -> None:
             )
         if not args.benchmarks or len(args.benchmarks) != 1:
             parser.error("--batch-submit requires exactly one --benchmarks ID")
-        if not args.dataset_root:
-            parser.error("--dataset-root required")
         registry = BenchmarkRegistry()
         registry.discover()
-        if not args.data:
+        if not args.dataset_root and not args.data:
+            print("[info] No --dataset-root provided; will load data from HuggingFace Hub.")
+        elif not args.data and args.dataset_root:
             try:
                 registry.get(args.benchmarks[0]).resolve_data_dir(args.dataset_root)
             except FileNotFoundError as exc:
@@ -869,7 +872,7 @@ def main() -> None:
     if not args.benchmarks:
         parser.error("--benchmarks required (or --list)")
     if not args.dataset_root:
-        parser.error("--dataset-root required")
+        print("[info] No --dataset-root provided; will load data from HuggingFace Hub.")
 
     preflight_warnings = _collect_preflight_warnings(registry, args.benchmarks, models)
     if preflight_warnings:
@@ -880,7 +883,7 @@ def main() -> None:
 
     _input_modality = None
     if args.input_modality:
-        from design_benchmarks.models.base import Modality
+        from gdb.models.base import Modality
 
         _modality_map = {
             "text": Modality.TEXT,

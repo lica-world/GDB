@@ -1,0 +1,46 @@
+name: New Benchmark Proposal
+description: Propose a new benchmark task
+labels: ["benchmark-proposal"]
+body:
+  - type: textarea
+    id: task
+    attributes:
+      label: Task description
+    validations:
+      required: true
+
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Domain
+      options:
+        - layout
+        - typography
+        - svg
+        - template
+        - temporal
+        - category
+        - lottie
+        - New domain
+    validations:
+      required: true
+
+  - type: dropdown
+    id: task_type
+    attributes:
+      label: Task type
+      options:
+        - understanding
+        - generation
+    validations:
+      required: true
+
+  - type: textarea
+    id: data
+    attributes:
+      label: Data requirements
+
+  - type: textarea
+    id: metrics
+    attributes:
+      label: Evaluation metrics

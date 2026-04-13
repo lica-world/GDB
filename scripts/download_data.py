@@ -3,7 +3,7 @@
 
 The archive is expected to already contain the final directory layout::
 
-    lica-benchmarks-dataset/
+    gdb-dataset/
         lica-data/
         benchmarks/
 
@@ -11,7 +11,7 @@ Usage::
 
     python scripts/download_data.py
     python scripts/download_data.py --out-dir /tmp
-    python scripts/download_data.py --from-zip ~/lica-benchmarks-dataset.zip
+    python scripts/download_data.py --from-zip ~/gdb-dataset.zip
 """
 
 from __future__ import annotations
@@ -25,9 +25,9 @@ import zipfile
 from pathlib import Path
 from urllib.request import Request, urlopen
 
-LICA_DATA_URL = "https://storage.googleapis.com/lica-ml/lica-benchmarks-dataset.zip"
+LICA_DATA_URL = "https://storage.googleapis.com/lica-ml/gdb-dataset.zip"
 DEFAULT_OUT_DIR = Path("data")
-BUNDLE_NAME = "lica-benchmarks-dataset"
+BUNDLE_NAME = "gdb-dataset"
 LICA_DATA_DIR = "lica-data"
 
 
@@ -43,7 +43,7 @@ def _download(url: str, dest: Path) -> None:
     print(f"Downloading (urllib) {url}")
     ctx = ssl.create_default_context()
     try:
-        resp = urlopen(Request(url, headers={"User-Agent": "lica-bench/0.1"}), context=ctx)
+        resp = urlopen(Request(url, headers={"User-Agent": "gdb/0.1"}), context=ctx)
     except ssl.SSLCertVerificationError as exc:
         print(
             "WARNING: TLS certificate verification failed; retrying without verification "
@@ -53,7 +53,7 @@ def _download(url: str, dest: Path) -> None:
             file=sys.stderr,
         )
         ctx = ssl._create_unverified_context()
-        resp = urlopen(Request(url, headers={"User-Agent": "lica-bench/0.1"}), context=ctx)
+        resp = urlopen(Request(url, headers={"User-Agent": "gdb/0.1"}), context=ctx)
 
     total = resp.headers.get("Content-Length")
     downloaded = 0
@@ -79,9 +79,9 @@ def download_and_extract(
     url: str = LICA_DATA_URL,
     from_zip: Path | None = None,
 ) -> Path:
-    """Download (or read) the zip and lay out ``lica-benchmarks-dataset/``.
+    """Download (or read) the zip and lay out ``gdb-dataset/``.
 
-    Returns the path to ``<out-dir>/lica-benchmarks-dataset/``.
+    Returns the path to ``<out-dir>/gdb-dataset/``.
     """
     out_dir.mkdir(parents=True, exist_ok=True)
     bundle_root = out_dir / BUNDLE_NAME
@@ -95,7 +95,7 @@ def download_and_extract(
     if from_zip:
         zip_path = from_zip
     else:
-        zip_path = out_dir / "lica-benchmarks-dataset.zip"
+        zip_path = out_dir / "gdb-dataset.zip"
         _download(url, zip_path)
 
     print(f"Extracting {zip_path} → {out_dir}")
@@ -127,7 +127,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--from-zip", type=Path, default=None,
-        help="Path to a local lica-benchmarks-dataset.zip (skip download)",
+        help="Path to a local gdb-dataset.zip (skip download)",
     )
     args = parser.parse_args()
     download_and_extract(args.out_dir, from_zip=args.from_zip)

@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "lica-bench"
+name = "gdb"
 version = "0.1.0"
-description = "lica-bench: design AI benchmark framework for layout understanding and generation"
+description = "GDB: GraphicDesignBench — benchmark suite for evaluating vision-language models on graphic design tasks"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.9"
@@ -14,9 +14,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/purvanshi/lica-bench"
-Repository = "https://github.com/purvanshi/lica-bench"
-Dataset = "https://github.com/purvanshi/lica-dataset"
+Homepage = "https://github.com/lica-world/GDB"
+Repository = "https://github.com/lica-world/GDB"
+Dataset = "https://huggingface.co/datasets/lica-world/GDB"
 
 [project.optional-dependencies]
 metrics = [
@@ -27,16 +27,17 @@ metrics = [
     "cairosvg>=2.7",
 ]
 svg-metrics = [
-    "lica-bench[metrics]",
+    "gdb[metrics]",
     "torch",
     "transformers",
     "lpips>=0.1",
 ]
 lottie-metrics = [
-    "lica-bench[metrics]",
+    "gdb[metrics]",
     "rlottie-python>=1.3",
 ]
 layout-metrics = [
+    "gdb[metrics]",
     "torch",
     "transformers",
     "pyiqa; python_version < '3.12' and platform_system == 'Linux'",
@@ -63,7 +64,11 @@ vllm-omni = [
     "vllm-omni>=0.16",
 ]
 all-providers = [
-    "lica-bench[gemini,openai,anthropic]",
+    "gdb[gemini,openai,anthropic]",
+]
+hub = [
+    "datasets>=2.14",
+    "Pillow>=10.0",
 ]
 dev = [
     "ruff",
@@ -85,4 +90,4 @@ select = ["E", "F", "W", "I"]
 ignore = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["design_benchmarks"]
+known-first-party = ["gdb"]
