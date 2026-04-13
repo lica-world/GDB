@@ -1,0 +1,88 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lica-bench"
+version = "0.1.0"
+description = "lica-bench: design AI benchmark framework for layout understanding and generation"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.24",
+]
+
+[project.urls]
+Homepage = "https://github.com/purvanshi/lica-bench"
+Repository = "https://github.com/purvanshi/lica-bench"
+Dataset = "https://github.com/purvanshi/lica-dataset"
+
+[project.optional-dependencies]
+metrics = [
+    "scipy>=1.11",
+    "scikit-learn>=1.3",
+    "scikit-image>=0.21",
+    "Pillow>=10.0",
+    "cairosvg>=2.7",
+]
+svg-metrics = [
+    "lica-bench[metrics]",
+    "torch",
+    "transformers",
+    "lpips>=0.1",
+]
+lottie-metrics = [
+    "lica-bench[metrics]",
+    "rlottie-python>=1.3",
+]
+layout-metrics = [
+    "torch",
+    "transformers",
+    "pyiqa; python_version < '3.12' and platform_system == 'Linux'",
+    "hpsv2; python_version < '3.12' and platform_system == 'Linux'",
+    "hpsv3; python_version < '3.12' and platform_system == 'Linux'",
+    "dreamsim; python_version < '3.12' and platform_system == 'Linux'",
+    "image-reward>=1.5; python_version < '3.12' and platform_system == 'Linux'",
+]
+gemini = [
+    "google-genai>=1.0",
+    "google-cloud-storage>=2.14",
+    "google-auth>=2.27",
+]
+openai = [
+    "openai>=1.12",
+]
+anthropic = [
+    "anthropic>=0.39",
+]
+vllm = [
+    "vllm>=0.8",
+]
+vllm-omni = [
+    "vllm-omni>=0.16",
+]
+all-providers = [
+    "lica-bench[gemini,openai,anthropic]",
+]
+dev = [
+    "ruff",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["*.json"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+# Long lines are common in docstrings and benchmark prompts; enforce via review.
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["design_benchmarks"]
