@@ -29,7 +29,7 @@ from gdb.utils.text_helpers import extract_json_obj
 
 logger = logging.getLogger(__name__)
 
-IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
+IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".mp4"}
 
 
 @benchmark
@@ -405,9 +405,9 @@ class IntentToLayoutGeneration(BaseBenchmark):
             aspect_ratio = float(width) / float(height) if width > 0 and height > 0 else 1.0
 
         reference_image = self._first_nonempty(
+            image_index.get(sid),
             self._resolve_manifest_file_path(root, row.get("reference_image")),
             self._resolve_manifest_file_path(root, row.get("ground_truth_image")),
-            image_index.get(sid),
             str(row.get("layout_remotion_image_url", "")),
         )
         if not reference_image:
