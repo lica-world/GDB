@@ -25,6 +25,7 @@ metrics = [
     "scikit-image>=0.21",
     "Pillow>=10.0",
     "cairosvg>=2.7",
+    "pytesseract>=0.3",
 ]
 svg-metrics = [
     "gdb[metrics]",
