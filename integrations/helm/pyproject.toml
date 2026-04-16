@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lica-gdb-helm"
+version = "0.1.0"
+description = "HELM integration for GDB (GraphicDesignBench) — run GDB benchmarks via helm-run"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.9"
+dependencies = [
+    "lica-gdb>=0.1.0",
+    "crfm-helm>=0.5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/lica-world/GDB"
+Repository = "https://github.com/lica-world/GDB"
+
+[project.optional-dependencies]
+svg = ["lica-gdb[svg-metrics]"]
+layout = ["lica-gdb[layout-metrics]"]
+lottie = ["lica-gdb[lottie-metrics]"]
+full = ["lica-gdb[svg-metrics,layout-metrics,lottie-metrics]"]
+
+[project.entry-points.helm]
+gdb_helm = "gdb_helm.run_specs"
+
+[tool.setuptools.packages.find]
+where = ["src"]
