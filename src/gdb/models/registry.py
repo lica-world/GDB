@@ -47,4 +47,4 @@ def load_model(provider: str, **kwargs: Any) -> BaseModel:
 
 
 # Trigger registration of built-in model templates.
-from . import api_models, local_models  # noqa: E402, F401
+from . import api_models, claude_code_agent, local_models  # noqa: E402, F401

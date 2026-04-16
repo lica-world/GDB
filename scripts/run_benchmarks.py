@@ -71,6 +71,7 @@ PROVIDER_TO_REGISTRY = {
     "openai": "openai",
     "openai_image": "openai_image",
     "anthropic": "anthropic",
+    "claude_code": "claude_code",
     "hf": "hf",
     "vllm": "vllm",
     "diffusion": "diffusion",
@@ -82,6 +83,7 @@ DEFAULT_MODEL_IDS = {
     "openai": "gpt-4o",
     "openai_image": "gpt-image-1.5",
     "anthropic": "claude-sonnet-4-20250514",
+    "claude_code": "claude-sonnet-4-20250514",
     "hf": "Qwen/Qwen3-VL-4B-Instruct",
     "vllm": "Qwen/Qwen3-VL-4B-Instruct",
     "diffusion": "flux.2-klein-4b",
@@ -190,6 +192,17 @@ def _build_model_from_parts(
         kwargs["credentials_path"] = args.credentials
     if getattr(args, "max_tokens", None) is not None:
         kwargs["max_tokens"] = args.max_tokens
+    if provider == "claude_code":
+        # Persist media outputs where --save-images would land, so users get a
+        # consistent location. Falls back to ./outputs/claude-code/ otherwise.
+        _out_dir = getattr(args, "images_dir", None) or (
+            str(REPO_ROOT / "outputs" / "claude-code")
+        )
+        kwargs["output_dir"] = _out_dir
+        if getattr(args, "claude_timeout", None):
+            kwargs["timeout_sec"] = args.claude_timeout
+        if getattr(args, "claude_allowed_tools", None):
+            kwargs["allowed_tools"] = args.claude_allowed_tools
     if provider == "hf":
         kwargs["device"] = getattr(args, "device", "auto")
         if getattr(args, "max_tokens", None) is not None:
@@ -792,6 +805,21 @@ def main() -> None:
     )
     parser.add_argument(
         "--no-log", action="store_true", help="Disable per-sample tracker JSONL output"
+    )
+
+    parser.add_argument(
+        "--claude-timeout",
+        type=int,
+        default=None,
+        help="Per-sample timeout (seconds) for --provider claude_code (default: 1800)",
+    )
+    parser.add_argument(
+        "--claude-allowed-tools",
+        default=None,
+        help=(
+            "Comma-separated tool list for --provider claude_code "
+            "(default: Bash,Read,Write,Edit,LS,Glob,Grep)"
+        ),
     )
 
     _pre, _ = parser.parse_known_args()

@@ -270,6 +270,14 @@ class BenchmarkRunner:
                     bench.build_model_input(s, modality=modality)
                     for s in samples
                 ]
+                # Annotate inputs with benchmark/sample identifiers so agent
+                # wrappers (e.g. ClaudeCodeAgent) can pick per-benchmark
+                # behavior such as the expected answer file extension.
+                for _mi, _sid in zip(model_inputs, sample_ids):
+                    if getattr(_mi, "metadata", None) is None:
+                        _mi.metadata = {}
+                    _mi.metadata.setdefault("benchmark_id", bid)
+                    _mi.metadata.setdefault("sample_id", _sid)
 
                 t0 = time.time()
                 predictions: List[Any] = []
