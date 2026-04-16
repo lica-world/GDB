@@ -23,12 +23,15 @@ Each task is either **understanding** or **generation**:
 ### Install
 
 ```bash
+pip install lica-gdb
+```
+
+Or install from source with extras:
+
+```bash
 git clone https://github.com/lica-world/GDB.git
 cd GDB
 python3 -m venv .venv && source .venv/bin/activate
-pip install -e .
-
-# Add extras you need (pick any combination)
 pip install -e ".[hub]"              # Load data from HuggingFace (no download step)
 pip install -e ".[metrics]"          # scipy, sklearn, Pillow, cairosvg, etc.
 pip install -e ".[openai]"           # OpenAI provider
@@ -115,6 +118,22 @@ python scripts/run_benchmarks.py --benchmarks layout-1 layout-3 layout-8 typogra
 
 See [scripts/README.md](scripts/README.md) for batch submit/collect, vLLM, HuggingFace, custom model entrypoints, multi-model configs, and all CLI flags.
 
+### HELM integration
+
+GDB benchmarks can also be run through Stanford CRFM's [HELM](https://github.com/stanford-crfm/helm) framework:
+
+```bash
+pip install lica-gdb-helm
+
+helm-run --run-entries gdb:benchmark_id=category-1,model=openai/gpt-4o \
+         --suite gdb-eval --max-eval-instances 50
+
+helm-summarize --suite gdb-eval
+helm-server --suite gdb-eval
+```
+
+All 39 benchmarks are available. See [integrations/helm/](integrations/helm/) for details.
+
 ### API keys
 
 ```bash
@@ -188,6 +207,8 @@ GDB/
 │   ├── download_data.py    # Fetch + unpack into gdb-dataset/
 │   ├── run_benchmarks.py   # Unified CLI for list, stub, real, and batch runs
 │   └── upload_to_hf.py     # Upload dataset to HuggingFace Hub
+├── integrations/
+│   └── helm/               # HELM plugin (lica-gdb-helm on PyPI)
 ├── docs/
 │   └── CONTRIBUTING.md     # How to add tasks and domains
 └── pyproject.toml
