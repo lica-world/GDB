@@ -84,7 +84,7 @@ def load_from_hub(
     except ImportError:
         raise ImportError(
             "The 'datasets' package is required to load from HuggingFace. "
-            'Install it with: pip install "gdb[hub]"'
+            'Install it with: pip install "lica-gdb[hub]"'
         )
 
     if cache_dir is None:

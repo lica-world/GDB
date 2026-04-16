@@ -57,7 +57,7 @@ All 39 GDB benchmarks are available. Pass any benchmark ID:
 
 ## How it works
 
-This package is a thin adapter (~300 lines) that translates between HELM and GDB types. All benchmark logic — data loading, prompt construction, output parsing, and metric computation — is delegated to the `gdb` package. Metrics from HELM runs are identical to standalone GDB evaluation.
+This package is a thin adapter (~300 lines) that translates between HELM and GDB types. All benchmark logic — data loading, prompt construction, output parsing, and metric computation — is delegated to the `lica-gdb` package. Metrics from HELM runs are identical to standalone GDB evaluation.
 
 ## Development
 
