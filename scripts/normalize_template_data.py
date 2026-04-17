@@ -142,7 +142,7 @@ def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument(
         "--root",
-        default="data/lica-benchmarks-dataset/benchmarks/template",
+        default="data/gdb-dataset/benchmarks/template",
         help="Directory containing template-*.json files",
     )
     ap.add_argument("--dry-run", action="store_true")
