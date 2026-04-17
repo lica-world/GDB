@@ -297,7 +297,9 @@ class ClaudeCodeAgent(BaseModel):
         if suffix in _MEDIA_EXTS:
             # Must live OUTSIDE the per-call work_parent (which the caller will
             # rmtree). Fall back to a stable path under the system tempdir.
-            dst_dir = self.output_dir or (Path(tempfile.gettempdir()) / "gdb-claude-code-outputs")
+            dst_dir = self.output_dir or (
+                Path(tempfile.gettempdir()) / "gdb-claude-code-outputs"
+            )
             dst_dir.mkdir(parents=True, exist_ok=True)
             stem = f"{bid or 'gdb'}_{sample_id or uuid.uuid4().hex[:8]}"
             dst = dst_dir / f"{stem}_{uuid.uuid4().hex[:6]}{suffix}"

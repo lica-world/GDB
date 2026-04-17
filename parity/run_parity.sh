@@ -26,7 +26,7 @@ if [ "$#" -gt 0 ]; then
   BENCHMARKS=("$@")
 else
   mapfile -t BENCHMARKS < <(python scripts/run_benchmarks.py --list 2>/dev/null \
-    | awk 'NR>2 && $3=="ready" {print $1}')
+    | awk 'NR>2 && $NF=="ready" {print $1}')
 fi
 
 mkdir -p "$(dirname "$OUTPUT")"
