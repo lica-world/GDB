@@ -1,6 +1,6 @@
 # GDB: GraphicDesignBench
 
-**GDB** evaluates vision-language models on professional graphic design tasks — layout reasoning, typography, SVG editing, template matching, animation. 39 benchmarks across 7 domains, built on the [Lica dataset](https://lica.world) (1,148 real design layouts).
+**GDB** evaluates vision-language models on professional graphic design tasks — layout reasoning, typography, SVG editing, template matching, animation. 39 benchmarks across 7 domains, built on the [Lica dataset](https://github.com/lica-world/lica-dataset) (1,148 real design layouts).
 
 **Paper:** [arXiv:2604.04192](https://arxiv.org/abs/2604.04192) &nbsp;|&nbsp; **Dataset:** [HuggingFace](https://huggingface.co/datasets/lica-world/GDB) &nbsp;|&nbsp; **Blog:** [lica.world](https://lica.world/blog/gdb-real-world-benchmark-for-graphic-design)
 
