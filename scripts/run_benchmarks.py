@@ -84,7 +84,7 @@ DEFAULT_MODEL_IDS = {
     "anthropic": "claude-sonnet-4-20250514",
     "hf": "Qwen/Qwen3-VL-4B-Instruct",
     "vllm": "Qwen/Qwen3-VL-4B-Instruct",
-    "diffusion": "flux.2-klein-4b",
+    "diffusion": "flux.2-klein-9b",
     "custom": "custom-entrypoint",
 }
 

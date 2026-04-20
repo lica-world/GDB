@@ -442,7 +442,7 @@ configs:
 
 # GDB: GraphicDesignBench
 
-39 benchmarks for evaluating vision-language models on graphic design tasks — layout, typography, SVG, template matching, animation. Built on 1,148 real design layouts from the [Lica dataset](https://lica.world).
+40 benchmarks for evaluating vision-language models on graphic design tasks — layout, typography, SVG, template matching, animation. Built on 1,148 real design layouts from the [Lica dataset](https://lica.world).
 
 **Paper:** [arXiv:2604.04192](https://arxiv.org/abs/2604.04192) &nbsp;|&nbsp; **Code:** [github.com/lica-world/GDB](https://github.com/lica-world/GDB) &nbsp;|&nbsp; **Blog:** [lica.world](https://lica.world/blog/gdb-real-world-benchmark-for-graphic-design)
 
