@@ -748,18 +748,45 @@ class StyledTextGeneration(BaseBenchmark):
     def build_model_input(self, sample: Dict[str, Any], *, modality: Any = None) -> Any:
         from gdb.models.base import ModelInput
 
+        metadata: Dict[str, Any] = {
+            "benchmark_id": self.meta.id,
+            "task": "g10_styled_text_element_generation",
+            "text": str(sample.get("text") or ""),
+            "style_spec": sample.get("style_spec") or {},
+            "prompt": str(sample.get("prompt") or ""),
+        }
+        width, height = self._read_image_size(sample.get("ground_truth_image"))
+        if width > 0 and height > 0:
+            metadata["target_width"] = width
+            metadata["target_height"] = height
+
         return ModelInput(
             text=str(sample.get("prompt") or ""),
             images=[],
-            metadata={
-                "benchmark_id": self.meta.id,
-                "task": "g10_styled_text_element_generation",
-                "mask": str(sample.get("mask") or ""),
-                "text": str(sample.get("text") or ""),
-                "style_spec": sample.get("style_spec") or {},
-                "prompt": str(sample.get("prompt") or ""),
-            },
+            metadata=metadata,
         )
+
+    @staticmethod
+    def _read_image_size(image_like: Any) -> Tuple[int, int]:
+        try:
+            from PIL import Image
+        except ImportError:
+            return (0, 0)
+
+        try:
+            if isinstance(image_like, (str, Path)):
+                p = Path(image_like)
+                if p.exists():
+                    with Image.open(p) as img:
+                        return int(img.size[0]), int(img.size[1])
+            elif isinstance(image_like, (bytes, bytearray)):
+                with Image.open(io.BytesIO(image_like)) as img:
+                    return int(img.size[0]), int(img.size[1])
+            elif isinstance(image_like, Image.Image):
+                return int(image_like.size[0]), int(image_like.size[1])
+        except Exception:
+            return (0, 0)
+        return (0, 0)
 
     def parse_model_output(self, output: Any) -> Any:
         if output is None:

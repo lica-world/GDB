@@ -1,6 +1,6 @@
 # GDB: GraphicDesignBench
 
-**GDB** evaluates vision-language models on professional graphic design tasks — layout reasoning, typography, SVG editing, template matching, animation. 39 benchmarks across 7 domains, built on the [Lica dataset](https://github.com/lica-world/lica-dataset) (1,148 real design layouts).
+**GDB** evaluates vision-language models on professional graphic design tasks — layout reasoning, typography, SVG editing, template matching, animation. 40 benchmarks across 7 domains, built on the [Lica dataset](https://github.com/lica-world/lica-dataset) (1,148 real design layouts).
 
 **Paper:** [arXiv:2604.04192](https://arxiv.org/abs/2604.04192) &nbsp;|&nbsp; **Dataset:** [HuggingFace](https://huggingface.co/datasets/lica-world/GDB) &nbsp;|&nbsp; **Blog:** [lica.world](https://lica.world/blog/gdb-real-world-benchmark-for-graphic-design)
 
@@ -16,7 +16,7 @@ Each task is either **understanding** or **generation**:
 | svg | 8 | 8 | SVG reasoning and editing (perceptual and semantic Q/A, bug fixing, optimization, style editing) and generation (text-to-SVG, image-to-SVG, combined input) |
 | template | 5 | 5 | Template matching, retrieval, clustering, and generation (style completion, color transfer) |
 | temporal | 8 | 6 | Keyframe ordering; motion type classification; video/component duration and start-time estimation; generation (animation parameters, motion trajectory, short-form video) |
-| typography | 12 | 8 | Font family, color, size/weight/alignment/letter spacing/line height, style ranges, curvature, rotation, and generation (styled text element, styled text rendering to layout) |
+| typography | 13 | 9 | Font family, color, size/weight/alignment/letter spacing/line height, style ranges, curvature, rotation, and generation (styled text element, styled text rendering to layout, text removal/background inpainting as `image-6`) |
 
 ## Setup
 
@@ -92,7 +92,7 @@ python scripts/run_benchmarks.py --benchmarks svg-1 \
     --provider hf --device auto \
     --dataset-root data/gdb-dataset
 
-# Diffusion / image generation (defaults to FLUX.2 klein 4B)
+# Diffusion / image generation (defaults to FLUX.2 klein 9B)
 python scripts/run_benchmarks.py --benchmarks layout-1 \
     --provider diffusion \
     --dataset-root data/gdb-dataset
@@ -109,7 +109,7 @@ python -m pip install --no-deps --ignore-requires-python \
 python scripts/run_benchmarks.py --benchmarks layout-1 layout-3 layout-8 typography-7 typography-8 \
     --provider custom \
     --custom-entry gdb.models.local_models:Flux2Model \
-    --custom-init-kwargs '{"model_name":"flux.2-klein-4b"}' \
+    --custom-init-kwargs '{"model_name":"flux.2-klein-9b"}' \
     --custom-modality image_generation \
     --dataset-root data/gdb-dataset
 ```
@@ -132,7 +132,7 @@ helm-summarize --suite gdb-eval
 helm-server --suite gdb-eval
 ```
 
-All 39 benchmarks are available. See [integrations/helm/](integrations/helm/) for details.
+All 40 benchmarks are available. See [integrations/helm/](integrations/helm/) for details.
 
 ### API keys
 
@@ -186,12 +186,13 @@ GDB/
 ├── src/gdb/
 │   ├── tasks/              # @benchmark classes — one file per domain
 │   │   ├── category.py     #   category-1, category-2
+│   │   ├── image.py        #   image-6 implementation (grouped into typography domain)
 │   │   ├── layout.py       #   layout-1 … layout-8
 │   │   ├── lottie.py       #   lottie-1, lottie-2
 │   │   ├── svg.py          #   svg-1 … svg-8
 │   │   ├── template.py     #   template-1 … template-5
 │   │   ├── temporal.py     #   temporal-1 … temporal-6
-│   │   └── typography.py   #   typography-1 … typography-8
+│   │   └── typography.py   #   typography-1 … typography-8 (+ image-6 in typography domain)
 │   ├── models/             # Provider wrappers (OpenAI, Anthropic, Gemini, HF, vLLM)
 │   ├── metrics/            # Reusable metric functions (IoU, FID, SSIM, LPIPS, edit distance)
 │   ├── evaluation/
