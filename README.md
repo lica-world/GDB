@@ -186,13 +186,13 @@ GDB/
 ├── src/gdb/
 │   ├── tasks/              # @benchmark classes — one file per domain
 │   │   ├── category.py     #   category-1, category-2
-│   │   ├── image.py        #   image-6 implementation (grouped into typography domain)
+│   │   ├── image.py        #   compatibility shim (re-exports image-6)
 │   │   ├── layout.py       #   layout-1 … layout-8
 │   │   ├── lottie.py       #   lottie-1, lottie-2
 │   │   ├── svg.py          #   svg-1 … svg-8
 │   │   ├── template.py     #   template-1 … template-5
 │   │   ├── temporal.py     #   temporal-1 … temporal-6
-│   │   └── typography.py   #   typography-1 … typography-8 (+ image-6 in typography domain)
+│   │   └── typography.py   #   typography-1 … typography-8 + image-6 implementation
 │   ├── models/             # Provider wrappers (OpenAI, Anthropic, Gemini, HF, vLLM)
 │   ├── metrics/            # Reusable metric functions (IoU, FID, SSIM, LPIPS, edit distance)
 │   ├── evaluation/
