@@ -27,7 +27,8 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 
 from gdb.base import BaseBenchmark, BenchmarkMeta, TaskType, benchmark
-from gdb.metrics.core import edit_distance, fid as fid_metric, lpips_score
+from gdb.metrics.core import edit_distance, lpips_score
+from gdb.metrics.core import fid as fid_metric
 from gdb.metrics.core import ssim as ssim_metric
 from gdb.metrics.text import normalize_font_name
 from gdb.utils.data_helpers import build_vision_input, load_csv_samples
