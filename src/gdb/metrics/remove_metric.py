@@ -13,9 +13,9 @@ from pathlib import Path
 from typing import Optional, Tuple, Union
 
 import numpy as np
-from PIL import Image
 import torch
 import torch.nn.functional as F
+from PIL import Image
 from torch.nn.functional import cosine_similarity
 
 logger = logging.getLogger(__name__)

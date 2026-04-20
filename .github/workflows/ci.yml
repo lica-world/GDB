@@ -38,6 +38,6 @@ jobs:
           reg = BenchmarkRegistry()
           reg.discover()
           ids = reg.list_ids()
-          assert len(ids) == 39, f'Expected 39 benchmarks, got {len(ids)}'
+          assert len(ids) == 40, f'Expected 40 benchmarks, got {len(ids)}'
           "
           python scripts/run_benchmarks.py --list
