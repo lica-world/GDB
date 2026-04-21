@@ -19,9 +19,39 @@ agentic `claude-code` Docker container on the Harbor side is not fair.
 | Registry        | `src/gdb/models/registry.py`                        | Registers the new model so `load_model("claude_code")` works           |
 | Runner          | `src/gdb/runner.py`                                 | Injects `benchmark_id`/`sample_id` into `ModelInput.metadata`          |
 | CLI             | `scripts/run_benchmarks.py`                         | `--provider claude_code`, `--claude-timeout`, `--claude-allowed-tools` |
-| Parity tooling  | `parity/claude-code-setup.sh`, `parity/run_parity.sh`, `parity/README.md` | Setup + reference parity runner                          |
+| Parity tooling  | `parity/claude-code-setup.sh`, `parity/run_parity.sh`, `parity/_run_upstream_parity.sh`, `parity/README.md` | Setup, reference parity runner, and sharded multi-run chain |
+| Rescoring       | `scripts/_nima_rescore_runs.py`                     | Post-hoc NIMA rescoring for `layout-8` predictions when `pyiqa` wasn't available at eval time |
 
 See `parity/README.md` for full usage details.
+
+### Image-output benchmark handling
+
+`layout-1`, `layout-8`, `typography-7`, and `typography-8` score PNG
+predictions via NIMA, OCR, or layer-aware compositing. `ClaudeCodeAgent`
+gives the agent an explicit image-output instruction block for these
+benchmarks (Pillow / cairosvg are available) and, if the agent still
+emits only an SVG or a text/JSON fallback, `_rasterize_image_output`
+converts it to a real PNG with cairosvg before the evaluator runs. This
+is scaffolding so the existing evaluators see a valid image; no scoring
+logic, ground truth, or thresholds are modified.
+
+### Sharded parity chain
+
+`parity/_run_upstream_parity.sh` chains two full parity runs (run2,
+run3), sharding each across `$SHARDS` parallel processes on disjoint
+benchmark subsets. Per-benchmark JSONs are written incrementally and
+re-merged into the shard output on completion, so a mid-run shutdown
+never discards finished benchmarks on re-launch.
+
+### NIMA rescoring
+
+`nima_score` on `layout-8` is only emitted when `pyiqa` is importable at
+eval time. When a run completes without it,
+`scripts/_nima_rescore_runs.py` runs NIMA against the per-run prediction
+PNGs preserved under `outputs/claude-code-media/` and patches the score
+into the corresponding `outputs/parity_claude_code_run{N}.json`. The
+Harbor verifier image ships `pyiqa` pinned, so the Harbor side never
+needs this step; both sides end up with the same metric on all runs.
 
 ## Quick start
 
