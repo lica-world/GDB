@@ -85,6 +85,11 @@ _OUTPUT_FILES: Dict[str, str] = {
 _DEFAULT_ALLOWED_TOOLS = "Bash,Read,Write,Edit,LS,Glob,Grep"
 _MEDIA_EXTS = {".png", ".jpg", ".jpeg", ".mp4", ".webm"}
 
+# Benchmarks whose output_file is an image: if the agent emits an SVG or a
+# text/JSON fallback, the harness rasterizes it to the expected PNG so the
+# downstream evaluator (OCR, NIMA) sees a real image.
+_IMAGE_BENCHMARKS = {"layout-1", "layout-8", "typography-7", "typography-8"}
+
 
 @register_model("claude_code")
 class ClaudeCodeAgent(BaseModel):
@@ -147,9 +152,11 @@ class ClaudeCodeAgent(BaseModel):
             proc_info = self._run_claude(workdir, instruction)
 
             out_path = workdir / output_file
+            if not out_path.is_file() and bid in _IMAGE_BENCHMARKS:
+                rendered = self._rasterize_image_output(workdir, out_path)
+                if rendered is not None:
+                    out_path = rendered
             if not out_path.is_file():
-                # Fall back to any answer.*/output.* the agent may have written
-                # with a different extension than we expected.
                 out_path = self._find_any_output(workdir)
 
             if out_path is None or not out_path.is_file():
@@ -215,8 +222,26 @@ class ClaudeCodeAgent(BaseModel):
             "",
             f"Write your answer to `{output_file}` in the current directory.",
             "Write ONLY the answer — no explanation, no markdown fences, no extra text.",
-            "",
         ]
+        if bid in _IMAGE_BENCHMARKS:
+            lines += [
+                "",
+                "### Image output requirements",
+                "",
+                "- You MUST produce a real rasterized image at `output.png`.",
+                "- `python3` is available. `Pillow`, `cairosvg`, and `numpy` are "
+                "installed in the active environment and importable.",
+                "- Preferred approach: build an SVG describing the design, then "
+                "rasterize it to `output.png` with "
+                "`python3 -c \"import cairosvg; "
+                "cairosvg.svg2png(url='design.svg', "
+                "write_to='output.png', output_width=1024)\"`.",
+                "- Alternatively, use Pillow's `ImageDraw`/`ImageFont` to draw "
+                "directly and save a PNG.",
+                "- Do NOT write natural-language descriptions or SVG-as-text into "
+                "`output.png` — the file must be a valid image.",
+            ]
+        lines += [""]
         return "\n".join(lines)
 
     def _run_claude(self, workdir: Path, instruction: str) -> Dict[str, Any]:
@@ -225,6 +250,16 @@ class ClaudeCodeAgent(BaseModel):
         # Disable keychain/oauth probing; parity runs are headless.
         env.setdefault("FORCE_AUTO_BACKGROUND_TASKS", "1")
         env.setdefault("ENABLE_BACKGROUND_TASKS", "1")
+        # On macOS, cairosvg's ctypes loader can't find Homebrew's libcairo
+        # unless DYLD_FALLBACK_LIBRARY_PATH includes /opt/homebrew/lib.
+        # Appending is idempotent and harmless on Linux.
+        if "DYLD_FALLBACK_LIBRARY_PATH" in env:
+            if "/opt/homebrew/lib" not in env["DYLD_FALLBACK_LIBRARY_PATH"]:
+                env["DYLD_FALLBACK_LIBRARY_PATH"] = (
+                    "/opt/homebrew/lib:" + env["DYLD_FALLBACK_LIBRARY_PATH"]
+                )
+        else:
+            env["DYLD_FALLBACK_LIBRARY_PATH"] = "/opt/homebrew/lib"
 
         cmd = [
             self.cli_cmd,
@@ -262,6 +297,62 @@ class ClaudeCodeAgent(BaseModel):
                 "stdout": (exc.stdout or "") if hasattr(exc, "stdout") else "",
                 "stderr": f"timeout after {self.timeout_sec}s",
             }
+
+    @staticmethod
+    def _rasterize_image_output(workdir: Path, target: Path) -> Optional[Path]:
+        """Rasterize an SVG (or SVG-bearing text file) to `target`.
+
+        Called when the agent was asked for `output.png` but only wrote an SVG
+        or a text/json file containing an SVG. Uses cairosvg + Pillow.
+        """
+        import re
+
+        svg_re = re.compile(r"<svg\b.*?</svg>", re.DOTALL | re.IGNORECASE)
+
+        candidates: list[Path] = []
+        for name in ("output.svg", "answer.svg", "design.svg"):
+            p = workdir / name
+            if p.is_file():
+                candidates.append(p)
+        for ext in (".txt", ".json"):
+            for p in sorted(workdir.glob(f"answer{ext}")):
+                if p.is_file():
+                    candidates.append(p)
+            for p in sorted(workdir.glob(f"output{ext}")):
+                if p.is_file():
+                    candidates.append(p)
+
+        svg_text: Optional[str] = None
+        for p in candidates:
+            try:
+                content = p.read_text(errors="replace")
+            except OSError:
+                continue
+            if content.lstrip().startswith("<?xml") or "<svg" in content.lower():
+                m = svg_re.search(content)
+                svg_text = m.group(0) if m else content
+                break
+
+        if not svg_text:
+            return None
+
+        try:
+            import cairosvg
+        except Exception as exc:
+            logger.warning("cairosvg unavailable for post-render: %s", exc)
+            return None
+
+        try:
+            cairosvg.svg2png(
+                bytestring=svg_text.encode("utf-8"),
+                write_to=str(target),
+                output_width=1024,
+            )
+        except Exception as exc:
+            logger.warning("cairosvg rasterization failed: %s", exc)
+            return None
+
+        return target if target.is_file() else None
 
     @staticmethod
     def _find_any_output(workdir: Path) -> Optional[Path]:
