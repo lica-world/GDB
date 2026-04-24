@@ -1,0 +1,38 @@
+[
+  {
+    "image_path": "assets/09udskj3Rw8KDeDaF27g_0.png",
+    "svg_path": "assets/09udskj3Rw8KDeDaF27g_0.svg",
+    "questions": {
+      "perceptual_qa": {
+        "question": "What is the overall aspect ratio of this graphic?",
+        "option": {
+          "A": "Wider than tall",
+          "B": "Taller than wide",
+          "C": "Perfectly square",
+          "D": "Circular"
+        },
+        "answer": "A"
+      }
+    },
+    "complexity": "easy",
+    "complexity_score": 7.24
+  },
+  {
+    "image_path": "assets/09udskj3Rw8KDeDaF27g_5.png",
+    "svg_path": "assets/09udskj3Rw8KDeDaF27g_5.svg",
+    "questions": {
+      "perceptual_qa": {
+        "question": "What is the dominant color of this circle?",
+        "option": {
+          "A": "Orange",
+          "B": "Blue",
+          "C": "Green",
+          "D": "Purple"
+        },
+        "answer": "A"
+      }
+    },
+    "complexity": "easy",
+    "complexity_score": 7.36
+  }
+]

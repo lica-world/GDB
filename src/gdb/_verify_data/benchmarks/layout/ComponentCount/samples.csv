@@ -1,0 +1,11 @@
+sample_id,image_path,prompt,expected_output
+gT6aha6BT385mIz8ddgx,lica-data/images/00863b23-aa9e-4572-b124-01749574e893/gT6aha6BT385mIz8ddgx.png,"You are a design layout analyst. Look at this rendered design template and count the total number of distinct visual elements you can see (text blocks, images, decorative shapes, icons, frames, etc.).
+
+Do NOT count the background canvas itself.
+
+Respond with ONLY a single integer. Do not include any explanation or extra text.",22
+ggo0WRiaZyivLfqsl7j6,lica-data/images/7b5d33fc-979d-4b48-bb70-d438e75c2dd0/ggo0WRiaZyivLfqsl7j6.png,"You are a design layout analyst. Look at this rendered design template and count the total number of distinct visual elements you can see (text blocks, images, decorative shapes, icons, frames, etc.).
+
+Do NOT count the background canvas itself.
+
+Respond with ONLY a single integer. Do not include any explanation or extra text.",42

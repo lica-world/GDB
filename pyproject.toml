@@ -83,6 +83,15 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "*" = ["*.json"]
+"gdb" = [
+    "_verify_data/README.md",
+    "_verify_data/benchmarks/**/*.csv",
+    "_verify_data/benchmarks/**/*.json",
+    "_verify_data/benchmarks/**/*.png",
+    "_verify_data/benchmarks/**/*.svg",
+    "_verify_data/lica-data/**/*.json",
+    "_verify_data/lica-data/**/*.png",
+]
 
 [tool.ruff]
 line-length = 100
