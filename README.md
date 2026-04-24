@@ -1,22 +1,35 @@
 # GDB: GraphicDesignBench
 
-**GDB** evaluates vision-language models on professional graphic design tasks — layout reasoning, typography, SVG editing, template matching, animation. 39 benchmarks across 7 domains, built on the [Lica dataset](https://github.com/lica-world/lica-dataset) (1,148 real design layouts).
+**GDB** evaluates vision-language models on professional graphic design tasks — layout reasoning, typography, SVG editing, template matching, animation. The paper defines 49 evaluation tasks; this repo ships 39 benchmark pipelines covering 45 of them, organized into 7 code-level domains and built on the [Lica dataset](https://github.com/lica-world/lica-dataset) (1,148 real design layouts).
 
 **Paper:** [arXiv:2604.04192](https://arxiv.org/abs/2604.04192) &nbsp;|&nbsp; **Dataset:** [HuggingFace](https://huggingface.co/datasets/lica-world/GDB) &nbsp;|&nbsp; **Blog:** [lica.world](https://lica.world/blog/gdb-real-world-benchmark-for-graphic-design)
 
 ## Benchmarks
 
-Each task is either **understanding** or **generation**:
+Each task is either **understanding** or **generation**. The table counts repo-level
+benchmark pipelines and the paper-level evaluation tasks they score.
 
-| Domain | Tasks | Benchmarks | Description |
-|--------|------:|----------:|-------------|
+| Repo domain | Benchmarks | Paper tasks | Description |
+|---|--:|--:|---|
 | category | 2 | 2 | Design category classification and user intent prediction |
 | layout | 8 | 8 | Spatial reasoning over design canvases (aspect ratio, element counting, component type and detection), layout generation (intent-to-layout, partial completion, aspect-ratio adaptation), and layer-aware object insertion (`layout-8`, reference- or description-guided per sample) |
 | lottie | 2 | 2 | Lottie animation generation from text and image |
 | svg | 8 | 8 | SVG reasoning and editing (perceptual and semantic Q/A, bug fixing, optimization, style editing) and generation (text-to-SVG, image-to-SVG, combined input) |
 | template | 5 | 5 | Template matching, retrieval, clustering, and generation (style completion, color transfer) |
-| temporal | 8 | 6 | Keyframe ordering; motion type classification; video/component duration and start-time estimation; generation (animation parameters, motion trajectory, short-form video) |
-| typography | 12 | 8 | Font family, color, size/weight/alignment/letter spacing/line height, style ranges, curvature, rotation, and generation (styled text element, styled text rendering to layout) |
+| temporal | 6 | 8 | Keyframe ordering; motion type classification; video/component duration and start-time estimation; generation (animation parameters, motion trajectory, short-form video) |
+| typography | 8 | 12 | Font family, color, size/weight/alignment/letter spacing/line height, style ranges, curvature, rotation, and generation (styled text element, styled text rendering to layout) |
+| **Totals** | **39** | **45** | |
+
+Benchmarks and paper tasks are not 1:1. Two benchmarks score multiple paper tasks from a
+single model call: `typography-3` extracts font size, weight, alignment, letter spacing,
+and line height as one JSON object (5 paper tasks), and `temporal-3` does the same for
+motion type plus three timing fields (4 paper tasks). This matches how a designer thinks
+about these attributes, and avoids issuing 9 separate prompts per sample.
+
+The paper additionally defines four layout-understanding tasks — layer order
+(`layout-u-5`), image rotation (`layout-u-6`), crop shape (`layout-u-7`), and frame
+detection (`layout-u-8`) — that do not have a runnable pipeline in the repo; see the
+paper for their definitions.
 
 ## Setup
 
@@ -46,8 +59,13 @@ pip install -e ".[dev]"              # ruff linter
 ### Verify
 
 ```bash
-python scripts/run_benchmarks.py --list
+gdb verify      # zero-config smoke test against a bundled fixture (~30s, no API keys)
+gdb list        # enumerate all 39 benchmarks
+gdb suites      # named suites: v0-all, v0-smoke, v0-understanding, v0-generation
 ```
+
+See the note in `src/gdb/suites.py` on why suites are `v0-*` today and
+what `v1.0-*` will mean once the evaluation definitions are frozen.
 
 ### Data
 
@@ -65,40 +83,45 @@ Then pass `--dataset-root data/gdb-dataset` to benchmark runs.
 
 ```bash
 # From HuggingFace (no local data needed)
-python scripts/run_benchmarks.py --stub-model --benchmarks category-1 --n 5
+gdb eval --stub-model --benchmarks category-1 --n 5
 
 # From local data
-python scripts/run_benchmarks.py --stub-model --benchmarks category-1 \
+gdb eval --stub-model --benchmarks category-1 \
     --dataset-root data/gdb-dataset --n 5
 
 # Real model
-python scripts/run_benchmarks.py --benchmarks svg-1 \
+gdb eval --benchmarks svg-1 \
+    --provider openai --model-id gpt-5.4 \
+    --dataset-root data/gdb-dataset
+
+# Whole suite
+gdb eval --suite v0-all \
     --provider openai --model-id gpt-5.4 \
     --dataset-root data/gdb-dataset
 
 # Temporal benchmarks (video-based)
-python scripts/run_benchmarks.py --benchmarks temporal-1 \
+gdb eval --benchmarks temporal-1 \
     --provider gemini \
     --dataset-root data/gdb-dataset
 
 # User custom python model entrypoint
-python scripts/run_benchmarks.py --benchmarks svg-1 \
+gdb eval --benchmarks svg-1 \
     --provider custom --custom-entry my_models.wrapper:build_model \
     --custom-init-kwargs '{"checkpoint":"/models/foo"}' \
     --dataset-root data/gdb-dataset
 
 # Local default VLM/LLM (defaults to Qwen3-VL-4B-Instruct)
-python scripts/run_benchmarks.py --benchmarks svg-1 \
+gdb eval --benchmarks svg-1 \
     --provider hf --device auto \
     --dataset-root data/gdb-dataset
 
 # Diffusion / image generation (defaults to FLUX.2 klein 4B)
-python scripts/run_benchmarks.py --benchmarks layout-1 \
+gdb eval --benchmarks layout-1 \
     --provider diffusion \
     --dataset-root data/gdb-dataset
 
 # Image-generation / editing task with a custom wrapper
-python scripts/run_benchmarks.py --benchmarks typography-7 \
+gdb eval --benchmarks typography-7 \
     --provider custom --custom-entry my_models.image_wrapper:build_model \
     --custom-modality image_generation \
     --dataset-root data/gdb-dataset
@@ -106,12 +129,17 @@ python scripts/run_benchmarks.py --benchmarks typography-7 \
 # Official FLUX.2 wrapper via the existing custom provider
 python -m pip install --no-deps --ignore-requires-python \
     "git+https://github.com/black-forest-labs/flux2.git"
-python scripts/run_benchmarks.py --benchmarks layout-1 layout-3 layout-8 typography-7 typography-8 \
+gdb eval --benchmarks layout-1 layout-3 layout-8 typography-7 typography-8 \
     --provider custom \
     --custom-entry gdb.models.local_models:Flux2Model \
     --custom-init-kwargs '{"model_name":"flux.2-klein-4b"}' \
     --custom-modality image_generation \
     --dataset-root data/gdb-dataset
+
+# Batch submit (~50% cheaper, fire-and-forget) + collect later
+gdb submit --benchmarks svg-1 --provider gemini --credentials auth/key.json \
+    --dataset-root data/gdb-dataset
+gdb collect jobs/job_manifest.json
 ```
 
 `--custom-entry` must point to an importable module attribute (installed or reachable via `PYTHONPATH`). For image-output tasks, use `--custom-modality image_generation`.
@@ -145,7 +173,7 @@ export GOOGLE_API_KEY=...            # Gemini (Google AI Studio / google-genai A
 For **Gemini on Vertex AI** (service account), pass a JSON key file instead of relying on `GOOGLE_API_KEY`:
 
 ```bash
-python scripts/run_benchmarks.py --benchmarks svg-1 --provider gemini \
+gdb eval --benchmarks svg-1 --provider gemini \
     --credentials /path/to/service-account.json \
     --dataset-root data/gdb-dataset
 ```
@@ -204,9 +232,10 @@ GDB/
 │   ├── registry.py         # Auto-discovery via pkgutil.walk_packages
 │   └── runner.py           # BenchmarkRunner orchestration
 ├── scripts/
-│   ├── download_data.py    # Fetch + unpack into gdb-dataset/
-│   ├── run_benchmarks.py   # Unified CLI for list, stub, real, and batch runs
-│   └── upload_to_hf.py     # Upload dataset to HuggingFace Hub
+│   ├── download_data.py         # Fetch + unpack into gdb-dataset/
+│   ├── build_verify_dataset.py  # Rebuild the bundled `gdb verify` fixture
+│   ├── run_benchmarks.py        # Deprecated; kept as a shim for existing scripts
+│   └── upload_to_hf.py          # Upload dataset to HuggingFace Hub
 ├── integrations/
 │   └── helm/               # HELM plugin (lica-gdb-helm on PyPI)
 ├── docs/

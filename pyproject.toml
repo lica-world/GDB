@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lica-gdb"
-version = "0.1.1"
+version = "0.2.0"
 description = "GDB: GraphicDesignBench — benchmark suite for evaluating vision-language models on graphic design tasks"
 readme = "README.md"
 license = {text = "Apache-2.0"}
@@ -12,6 +12,9 @@ requires-python = ">=3.9"
 dependencies = [
     "numpy>=1.24",
 ]
+
+[project.scripts]
+gdb = "gdb.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/lica-world/GDB"
@@ -80,6 +83,15 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "*" = ["*.json"]
+"gdb" = [
+    "_verify_data/README.md",
+    "_verify_data/benchmarks/**/*.csv",
+    "_verify_data/benchmarks/**/*.json",
+    "_verify_data/benchmarks/**/*.png",
+    "_verify_data/benchmarks/**/*.svg",
+    "_verify_data/lica-data/**/*.json",
+    "_verify_data/lica-data/**/*.png",
+]
 
 [tool.ruff]
 line-length = 100
