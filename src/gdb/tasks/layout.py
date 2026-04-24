@@ -575,31 +575,22 @@ class IntentToLayoutGeneration(BaseBenchmark):
 
     @staticmethod
     def _resolve_manifest_file_path(root: Path, value: Any) -> str:
+        # See ``_resolve_manifest_path`` for why we skip ``.resolve()``.
         raw = str(value or "").strip()
         if not raw:
             return ""
         if raw.startswith(("http://", "https://")):
             return raw
-        as_path = Path(raw)
-        if as_path.is_file():
-            return str(as_path.resolve())
-        candidate = (root / raw).resolve()
-        if candidate.is_file():
-            return str(candidate)
-        return ""
+        candidate = raw if os.path.isabs(raw) else os.path.join(str(root), raw)
+        return candidate if os.path.isfile(candidate) else ""
 
     @staticmethod
     def _resolve_manifest_dir_path(root: Path, value: Any) -> str:
         raw = str(value or "").strip()
         if not raw:
             return ""
-        as_path = Path(raw)
-        if as_path.is_dir():
-            return str(as_path.resolve())
-        candidate = (root / raw).resolve()
-        if candidate.is_dir():
-            return str(candidate)
-        return ""
+        candidate = raw if os.path.isabs(raw) else os.path.join(str(root), raw)
+        return candidate if os.path.isdir(candidate) else ""
 
     def _compose_prompt(self, sample: Dict[str, Any]) -> str:
         lines = [
@@ -2881,41 +2872,36 @@ class PartialLayoutCompletion(IntentToLayoutGeneration):
         value: Any,
         component_renders_dir: Path,
     ) -> str:
+        # See ``_resolve_manifest_path`` for why we skip ``.resolve()``.
         raw = str(value or "").strip()
         if not raw:
             return ""
 
-        as_path = Path(raw)
-        if as_path.is_file():
-            return str(as_path.resolve())
+        if os.path.isabs(raw) and os.path.isfile(raw):
+            return raw
 
-        sample_dir = component_renders_dir / sample_id
+        sample_dir = os.path.join(str(component_renders_dir), sample_id)
         if raw.startswith(("http://", "https://")):
             filename = Path(urlparse(raw).path).name
             if filename:
-                cached = sample_dir / filename
-                if cached.is_file():
-                    return str(cached.resolve())
+                cached = os.path.join(sample_dir, filename)
+                if os.path.isfile(cached):
+                    return cached
             return raw
 
-        if sample_dir.is_dir():
-            candidate = sample_dir / raw
-            if candidate.is_file():
-                return str(candidate.resolve())
-        return ""
+        candidate = os.path.join(sample_dir, raw)
+        return candidate if os.path.isfile(candidate) else ""
 
     @staticmethod
     def _resolve_manifest_path(root: Path, value: Any) -> str:
+        # Hot path during load_data: ``.resolve()`` walks every path component
+        # with lstat to detect symlinks; the dataset has none, so we skip it
+        # and use a single ``os.path.isfile`` probe instead.
         raw = str(value or "").strip()
         if not raw:
             return ""
-        as_path = Path(raw)
-        if as_path.is_file():
-            return str(as_path.resolve())
-        candidate = (root / raw).resolve()
-        if candidate.is_file():
-            return str(candidate)
-        return ""
+        candidate = raw if os.path.isabs(raw) else os.path.join(str(root), raw)
+        return candidate if os.path.isfile(candidate) else ""
 
     @classmethod
     def _strip_code_fence(cls, text: str) -> str:
@@ -4271,14 +4257,12 @@ class AspectRatioAdaptation(PartialLayoutCompletion):
 
     def _resolve_component_render_dir(self, value: Any, *, root: Path, sample_id: str) -> Path:
         raw = str(value or "").strip()
+        # See ``_resolve_manifest_path`` for why we skip ``.resolve()``.
         if raw:
-            p = Path(raw)
-            if p.is_dir():
-                return p.resolve()
-            candidate = (root / raw).resolve()
-            if candidate.is_dir():
-                return candidate
-        return (root / "component_renders" / sample_id).resolve()
+            abs_raw = raw if os.path.isabs(raw) else os.path.join(str(root), raw)
+            if os.path.isdir(abs_raw):
+                return Path(abs_raw)
+        return root / "component_renders" / sample_id
 
     def _collect_component_assets(self, component_dir: Path, sample_id: str) -> List[str]:
         if not component_dir.is_dir():
