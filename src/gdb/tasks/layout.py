@@ -581,16 +581,16 @@ class IntentToLayoutGeneration(BaseBenchmark):
             return ""
         if raw.startswith(("http://", "https://")):
             return raw
-        candidate = raw if os.path.isabs(raw) else os.path.join(str(root), raw)
-        return candidate if os.path.isfile(candidate) else ""
+        candidate = Path(raw) if os.path.isabs(raw) else root / raw
+        return str(candidate) if candidate.is_file() else ""
 
     @staticmethod
     def _resolve_manifest_dir_path(root: Path, value: Any) -> str:
         raw = str(value or "").strip()
         if not raw:
             return ""
-        candidate = raw if os.path.isabs(raw) else os.path.join(str(root), raw)
-        return candidate if os.path.isdir(candidate) else ""
+        candidate = Path(raw) if os.path.isabs(raw) else root / raw
+        return str(candidate) if candidate.is_dir() else ""
 
     def _compose_prompt(self, sample: Dict[str, Any]) -> str:
         lines = [
@@ -2877,31 +2877,33 @@ class PartialLayoutCompletion(IntentToLayoutGeneration):
         if not raw:
             return ""
 
-        if os.path.isabs(raw) and os.path.isfile(raw):
-            return raw
+        if os.path.isabs(raw):
+            as_path = Path(raw)
+            if as_path.is_file():
+                return str(as_path)
 
-        sample_dir = os.path.join(str(component_renders_dir), sample_id)
+        sample_dir = component_renders_dir / sample_id
         if raw.startswith(("http://", "https://")):
             filename = Path(urlparse(raw).path).name
             if filename:
-                cached = os.path.join(sample_dir, filename)
-                if os.path.isfile(cached):
-                    return cached
+                cached = sample_dir / filename
+                if cached.is_file():
+                    return str(cached)
             return raw
 
-        candidate = os.path.join(sample_dir, raw)
-        return candidate if os.path.isfile(candidate) else ""
+        candidate = sample_dir / raw
+        return str(candidate) if candidate.is_file() else ""
 
     @staticmethod
     def _resolve_manifest_path(root: Path, value: Any) -> str:
         # Hot path during load_data: ``.resolve()`` walks every path component
         # with lstat to detect symlinks; the dataset has none, so we skip it
-        # and use a single ``os.path.isfile`` probe instead.
+        # in favour of a single ``is_file`` stat.
         raw = str(value or "").strip()
         if not raw:
             return ""
-        candidate = raw if os.path.isabs(raw) else os.path.join(str(root), raw)
-        return candidate if os.path.isfile(candidate) else ""
+        candidate = Path(raw) if os.path.isabs(raw) else root / raw
+        return str(candidate) if candidate.is_file() else ""
 
     @classmethod
     def _strip_code_fence(cls, text: str) -> str:
@@ -4256,12 +4258,12 @@ class AspectRatioAdaptation(PartialLayoutCompletion):
         }
 
     def _resolve_component_render_dir(self, value: Any, *, root: Path, sample_id: str) -> Path:
-        raw = str(value or "").strip()
         # See ``_resolve_manifest_path`` for why we skip ``.resolve()``.
+        raw = str(value or "").strip()
         if raw:
-            abs_raw = raw if os.path.isabs(raw) else os.path.join(str(root), raw)
-            if os.path.isdir(abs_raw):
-                return Path(abs_raw)
+            candidate = Path(raw) if os.path.isabs(raw) else root / raw
+            if candidate.is_dir():
+                return candidate
         return root / "component_renders" / sample_id
 
     def _collect_component_assets(self, component_dir: Path, sample_id: str) -> List[str]:
