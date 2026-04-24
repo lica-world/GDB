@@ -76,6 +76,7 @@ hub = [
 ]
 dev = [
     "ruff",
+    "pytest>=7",
 ]
 
 [tool.setuptools.packages.find]
