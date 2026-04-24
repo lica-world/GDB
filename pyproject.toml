@@ -13,6 +13,9 @@ dependencies = [
     "numpy>=1.24",
 ]
 
+[project.scripts]
+gdb = "gdb.cli:main"
+
 [project.urls]
 Homepage = "https://github.com/lica-world/GDB"
 Repository = "https://github.com/lica-world/GDB"
