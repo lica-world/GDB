@@ -175,6 +175,7 @@ def _merge_card_configs(repo_id: str, new_configs: List[str]) -> List[str]:
     """Union new configs with any already on the Hub, so partial uploads don't
     drop existing declarations."""
     import re
+
     from huggingface_hub import hf_hub_download
 
     try:
