@@ -1,31 +1,22 @@
 #!/usr/bin/env python3
-"""CLI to list and run GDB benchmarks (stub model, API providers, batch APIs).
+"""Legacy entry point for GDB benchmarks. Prefer the ``gdb`` command.
 
-Usage:
-    # Stub smoke test (no API keys)
-    python scripts/run_benchmarks.py --stub-model --benchmarks layout-4 layout-5 \\
-        --dataset-root data/gdb-dataset --n 5
+.. deprecated:: 0.2.0
+    Use the installed ``gdb`` console script (``pip install lica-gdb``) or
+    ``python -m gdb``. Equivalents:
 
-    # API run (shipped Lica layout)
-    python scripts/run_benchmarks.py --benchmarks svg-1 \\
-        --provider gemini --credentials auth/google-cloud-key.json \\
-        --dataset-root data/gdb-dataset
+    * ``python scripts/run_benchmarks.py --list``
+      → ``gdb list``
+    * ``python scripts/run_benchmarks.py --stub-model --benchmarks layout-4``
+      → ``gdb eval --stub-model --benchmarks layout-4``  (or ``gdb verify``)
+    * ``python scripts/run_benchmarks.py --provider openai --benchmarks svg-1``
+      → ``gdb eval --provider openai --benchmarks svg-1``
+    * ``python scripts/run_benchmarks.py --batch-submit --provider gemini --benchmarks svg-1``
+      → ``gdb submit --provider gemini --benchmarks svg-1``
+    * ``python scripts/run_benchmarks.py --collect jobs/job_manifest.json``
+      → ``gdb collect jobs/job_manifest.json``
 
-    python scripts/run_benchmarks.py --benchmarks layout-1 \\
-        --provider openai_image --model-id gpt-image-1.5 \\
-        --data /path/to/custom/layout2_folder --dataset-root data/gdb-dataset \\
-        --n 200 -o outputs/baseline.json
-
-    # Batch submit (~50% cheaper, fire-and-forget)
-    python scripts/run_benchmarks.py --batch-submit --benchmarks svg-1 \\
-        --provider gemini --credentials /path/to/credentials.json \\
-        --dataset-root data/gdb-dataset
-
-    # Collect results from a previous submit
-    python scripts/run_benchmarks.py --collect jobs/job_manifest.json
-
-    # List all benchmarks
-    python scripts/run_benchmarks.py --list
+    This script will be removed in a future release.
 """
 
 from __future__ import annotations
@@ -615,6 +606,11 @@ def cmd_collect(args: argparse.Namespace) -> bool:
 
 
 def main() -> None:
+    print(
+        "[deprecated] scripts/run_benchmarks.py will be removed in a future release. "
+        "Use `gdb` (see `gdb --help`) or `python -m gdb` instead.",
+        file=sys.stderr,
+    )
     parser = argparse.ArgumentParser(
         description="Unified benchmark runner",
         formatter_class=argparse.RawDescriptionHelpFormatter,
