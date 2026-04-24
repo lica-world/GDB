@@ -1,22 +1,35 @@
 # GDB: GraphicDesignBench
 
-**GDB** evaluates vision-language models on professional graphic design tasks — layout reasoning, typography, SVG editing, template matching, animation. 39 benchmarks across 7 domains, built on the [Lica dataset](https://github.com/lica-world/lica-dataset) (1,148 real design layouts).
+**GDB** evaluates vision-language models on professional graphic design tasks — layout reasoning, typography, SVG editing, template matching, animation. The paper defines 49 evaluation tasks; this repo ships 39 benchmark pipelines covering 45 of them, organized into 7 code-level domains and built on the [Lica dataset](https://github.com/lica-world/lica-dataset) (1,148 real design layouts).
 
 **Paper:** [arXiv:2604.04192](https://arxiv.org/abs/2604.04192) &nbsp;|&nbsp; **Dataset:** [HuggingFace](https://huggingface.co/datasets/lica-world/GDB) &nbsp;|&nbsp; **Blog:** [lica.world](https://lica.world/blog/gdb-real-world-benchmark-for-graphic-design)
 
 ## Benchmarks
 
-Each task is either **understanding** or **generation**:
+Each task is either **understanding** or **generation**. The table counts repo-level
+benchmark pipelines and the paper-level evaluation tasks they score.
 
-| Domain | Tasks | Benchmarks | Description |
-|--------|------:|----------:|-------------|
+| Repo domain | Benchmarks | Paper tasks | Description |
+|---|--:|--:|---|
 | category | 2 | 2 | Design category classification and user intent prediction |
 | layout | 8 | 8 | Spatial reasoning over design canvases (aspect ratio, element counting, component type and detection), layout generation (intent-to-layout, partial completion, aspect-ratio adaptation), and layer-aware object insertion (`layout-8`, reference- or description-guided per sample) |
 | lottie | 2 | 2 | Lottie animation generation from text and image |
 | svg | 8 | 8 | SVG reasoning and editing (perceptual and semantic Q/A, bug fixing, optimization, style editing) and generation (text-to-SVG, image-to-SVG, combined input) |
 | template | 5 | 5 | Template matching, retrieval, clustering, and generation (style completion, color transfer) |
-| temporal | 8 | 6 | Keyframe ordering; motion type classification; video/component duration and start-time estimation; generation (animation parameters, motion trajectory, short-form video) |
-| typography | 12 | 8 | Font family, color, size/weight/alignment/letter spacing/line height, style ranges, curvature, rotation, and generation (styled text element, styled text rendering to layout) |
+| temporal | 6 | 8 | Keyframe ordering; motion type classification; video/component duration and start-time estimation; generation (animation parameters, motion trajectory, short-form video) |
+| typography | 8 | 12 | Font family, color, size/weight/alignment/letter spacing/line height, style ranges, curvature, rotation, and generation (styled text element, styled text rendering to layout) |
+| **Totals** | **39** | **45** | |
+
+Benchmarks and paper tasks are not 1:1. Two benchmarks score multiple paper tasks from a
+single model call: `typography-3` extracts font size, weight, alignment, letter spacing,
+and line height as one JSON object (5 paper tasks), and `temporal-3` does the same for
+motion type plus three timing fields (4 paper tasks). This matches how a designer thinks
+about these attributes, and avoids issuing 9 separate prompts per sample.
+
+The paper additionally defines four layout-understanding tasks — layer order
+(`layout-u-5`), image rotation (`layout-u-6`), crop shape (`layout-u-7`), and frame
+detection (`layout-u-8`) — that do not have a runnable pipeline in the repo; see the
+paper for their definitions.
 
 ## Setup
 
