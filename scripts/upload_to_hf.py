@@ -29,8 +29,6 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DATASET_ROOT = REPO_ROOT / "data" / "gdb-dataset"
 HF_REPO_ID = "lica-world/GDB"
 
-SKIP_BENCHMARKS: set = set()
-
 
 def _serialize(value: Any) -> str:
     if isinstance(value, str):
@@ -57,14 +55,7 @@ def _is_video(path: str) -> bool:
 
 
 def _normalize_paths(value: Any, dataset_root_str: str) -> Any:
-    """Replace absolute paths under ``dataset_root`` with the relative tail.
-
-    Benchmarks load locally with absolute paths like
-    ``/home/.../gdb-dataset/benchmarks/svg/assets/foo.png``; those strings
-    are useless to an HF consumer who doesn't have that tree on disk. We
-    strip the root prefix so the parquet is portable — downstream code can
-    still try ``Path(x).is_file()`` and gracefully fall back when missing.
-    """
+    """Strip ``dataset_root`` prefix from absolute paths so parquet is portable."""
     if isinstance(value, str):
         if value.startswith(dataset_root_str + "/"):
             return value[len(dataset_root_str) + 1:]
@@ -92,11 +83,8 @@ def load_via_registry(
 
     dataset_root_str = str(Path(dataset_root).resolve())
     rows_out = []
-    # Only keys whose values are faithfully preserved elsewhere in the parquet
-    # row are excluded from ``metadata``. The ``image`` column packs at most
-    # ONE PIL blob, so path-valued keys (``video_path``, ``input_image``,
-    # ``shuffled_keyframe_paths`` etc.) MUST survive in metadata — otherwise
-    # ``build_model_input`` crashes with KeyError on the HF side.
+    # Only fields promoted to their own parquet column are excluded from
+    # ``metadata``; everything else (including path-valued keys) must survive.
     metadata_skip = {"sample_id", "ground_truth", "prompt"}
     for i, sample in enumerate(samples):
         if i and i % 500 == 0:
@@ -133,24 +121,7 @@ def load_benchmark(
     benchmark_id: str,
     dataset_root: Path,
 ) -> List[Dict[str, Any]]:
-    """Always load via the benchmark's own ``load_data()``.
-
-    The historical ``load_csv_benchmark`` / ``load_json_benchmark`` /
-    ``load_manifest_benchmark`` shortcuts were faster but drifted from the
-    sample shape each benchmark's ``build_model_input()`` expects at runtime
-    (e.g. svg-1 was uploaded with nested ``questions`` structures that the
-    pipeline could not consume, and several benchmarks were missing the
-    per-entry sample expansion their ``load_data()`` does). Going through
-    ``load_via_registry`` guarantees HF parquet rows round-trip to the same
-    shape local-file loading produces.
-    """
-    if benchmark_id in SKIP_BENCHMARKS:
-        logger.info("Skipping %s (excluded)", benchmark_id)
-        return []
-
     bench = registry.get(benchmark_id)
-    meta = bench.meta
-
     try:
         data_dir = bench.resolve_data_dir(dataset_root)
     except FileNotFoundError as exc:
@@ -159,13 +130,12 @@ def load_benchmark(
 
     t0 = time.time()
     try:
-        rows = load_via_registry(registry, benchmark_id, meta, data_dir, dataset_root)
+        rows = load_via_registry(registry, benchmark_id, bench.meta, data_dir, dataset_root)
     except Exception as exc:
         logger.warning("Failed to load %s: %s: %s", benchmark_id, type(exc).__name__, exc)
         return []
 
-    dt = time.time() - t0
-    logger.info("Loaded %s: %d samples (%.1fs)", benchmark_id, len(rows), dt)
+    logger.info("Loaded %s: %d samples (%.1fs)", benchmark_id, len(rows), time.time() - t0)
     return rows
 
 
@@ -201,12 +171,9 @@ def build_dataset(all_rows: List[Dict[str, Any]]):
 _BENCHMARK_ID_PATTERN = r"^[a-z]+-\d+$"
 
 
-def _merge_card_configs(api, repo_id: str, new_configs: List[str]) -> List[str]:
-    """Union new configs with any already-declared configs on the Hub.
-
-    Avoids the footgun where pushing only a subset of benchmarks and then
-    regenerating the card would delete declarations for the rest.
-    """
+def _merge_card_configs(repo_id: str, new_configs: List[str]) -> List[str]:
+    """Union new configs with any already on the Hub, so partial uploads don't
+    drop existing declarations."""
     import re
     from huggingface_hub import hf_hub_download
 
@@ -402,11 +369,8 @@ def main():
         ds.push_to_hub(args.repo_id, config_name=bid,
                        commit_message=f"Upload GDB benchmark: {bid}")
 
-    # Merge configs into the existing card rather than replacing, so that a
-    # partial re-upload (e.g. --benchmarks template-4 template-5) doesn't wipe
-    # out declarations for the other 37 configs that are still on the Hub.
     logger.info("Uploading dataset card...")
-    card_config_names = _merge_card_configs(api, args.repo_id, sorted(per_benchmark.keys()))
+    card_config_names = _merge_card_configs(args.repo_id, sorted(per_benchmark.keys()))
     api.upload_file(
         path_or_fileobj=generate_dataset_card(card_config_names).encode("utf-8"),
         path_in_repo="README.md",
