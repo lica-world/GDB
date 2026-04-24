@@ -116,9 +116,13 @@ def load_from_hub(
             if k not in sample:
                 sample[k] = v
 
-        # Handle image: save PIL to cache, store path
+        # Handle image: save PIL to cache, store path.
+        # Generation-task configs store `image` as an empty string rather than
+        # a PIL object (the column type is Value("string") when no samples in
+        # that config have images), so skip anything that isn't a PIL image.
         pil_img = row.get("image")
-        if pil_img is not None:
+        has_pil = pil_img is not None and hasattr(pil_img, "save")
+        if has_pil:
             dest = _image_cache_path(cache_dir, benchmark_id, sample["sample_id"])
             if dest.exists():
                 img_path = str(dest)
