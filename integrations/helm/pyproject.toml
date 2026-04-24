@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lica-gdb-helm"
-version = "0.1.1"
+version = "0.1.2"
 description = "HELM integration for GDB (GraphicDesignBench) — run GDB benchmarks via helm-run"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.9"
 dependencies = [
-    "lica-gdb>=0.1.0",
+    "lica-gdb>=0.2.1",
     "crfm-helm>=0.5.0",
 ]
 
