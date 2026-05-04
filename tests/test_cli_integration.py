@@ -36,12 +36,12 @@ def test_help_lists_core_subcommands():
         assert subcmd in result.stdout, f"`{subcmd}` missing from --help output"
 
 
-def test_list_prints_39_benchmarks():
+def test_list_prints_40_benchmarks():
     result = _run("list")
     assert result.returncode == 0, result.stderr
     # The exact integer is worth asserting: it's the number the paper and
     # README both reference, and the CI smoke test also pins it.
-    assert "39 benchmark(s)" in result.stdout
+    assert "40 benchmark(s)" in result.stdout
 
 
 def test_suites_lists_all_v0_suites():
