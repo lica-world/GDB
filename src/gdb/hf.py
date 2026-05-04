@@ -1,11 +1,7 @@
 """Load benchmark samples from the HuggingFace Hub dataset (lica-world/GDB).
 
-This module provides a drop-in alternative to the local file-based
-``load_data()`` path.  When ``--dataset-root`` is not provided, the runner
-can call ``load_from_hub()`` to fetch data directly from HuggingFace.
-
-Images are cached to disk so that ``build_model_input()`` gets file paths
-it can pass to model APIs, matching the local-file contract.
+Used when the runner has no ``--dataset-root``. Images are cached to disk
+so ``build_model_input()`` receives file paths, matching the local contract.
 """
 
 from __future__ import annotations
@@ -69,15 +65,12 @@ def load_from_hub(
     repo_id: str = HF_REPO_ID,
     cache_dir: Optional[Path] = None,
 ) -> List[Dict[str, Any]]:
-    """Load samples for *benchmark_id* from the HuggingFace Hub dataset.
+    """Load samples for *benchmark_id* from the HuggingFace Hub.
 
-    Returns a list of dicts matching the contract of
-    ``BaseBenchmark.load_data()`` — at minimum ``sample_id`` and
-    ``ground_truth``, plus task-specific fields unpacked from the
-    ``metadata`` column.
-
-    Images are saved to *cache_dir* (default ``~/.cache/gdb/images/``)
-    so downstream code receives file path strings, not PIL objects.
+    Matches ``BaseBenchmark.load_data()``: returns dicts with ``sample_id``,
+    ``ground_truth``, plus any fields unpacked from the ``metadata`` column.
+    Images are cached under *cache_dir* (default ``~/.cache/gdb/images/``)
+    and surfaced as ``image_path`` strings.
     """
     try:
         from datasets import load_dataset
@@ -101,11 +94,9 @@ def load_from_hub(
             "prompt": row.get("prompt", ""),
         }
 
-        # Alias prompt into keys that some benchmarks expect
         sample["question"] = sample["prompt"]
         sample["description"] = sample["prompt"]
 
-        # Unpack task-specific fields from metadata JSON
         meta_raw = row.get("metadata", "{}")
         try:
             extra = json.loads(meta_raw) if meta_raw else {}
@@ -116,9 +107,11 @@ def load_from_hub(
             if k not in sample:
                 sample[k] = v
 
-        # Handle image: save PIL to cache, store path
+        # Generation-only configs type ``image`` as Value("string") and store "",
+        # so we check for a PIL-like object rather than truthiness.
         pil_img = row.get("image")
-        if pil_img is not None:
+        has_pil = pil_img is not None and hasattr(pil_img, "save")
+        if has_pil:
             dest = _image_cache_path(cache_dir, benchmark_id, sample["sample_id"])
             if dest.exists():
                 img_path = str(dest)

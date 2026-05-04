@@ -1,0 +1,11 @@
+sample_id,image_path,prompt,expected_output
+gT6aha6BT385mIz8ddgx_text11,lica-data/images/00863b23-aa9e-4572-b124-01749574e893/gT6aha6BT385mIz8ddgx.png,"You are a typography expert. Look at this rendered design template.
+
+What font family is used for the text: ""loremipsumsite.co""?
+
+Respond with ONLY the font family name (e.g. ""Roboto"", ""Open Sans"", ""DM Serif Display""). Do not include weight, style, or any explanation.",Montserrat
+gT6aha6BT385mIz8ddgx_text8,lica-data/images/00863b23-aa9e-4572-b124-01749574e893/gT6aha6BT385mIz8ddgx.png,"You are a typography expert. Look at this rendered design template.
+
+What font family is used for the text: ""BOOK""?
+
+Respond with ONLY the font family name (e.g. ""Roboto"", ""Open Sans"", ""DM Serif Display""). Do not include weight, style, or any explanation.",Montserrat

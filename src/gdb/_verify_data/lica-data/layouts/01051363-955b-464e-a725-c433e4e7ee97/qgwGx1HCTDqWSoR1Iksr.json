@@ -1,0 +1,30 @@
+{
+  "components": [
+    {
+      "type": "IMAGE",
+      "src": "https://storage.googleapis.com/lica-video/c0580e66-acd7-42e2-9e05-c10501489e82.png",
+      "left": "126.646px",
+      "top": "396.242px",
+      "width": "826.709px",
+      "height": "553.895px",
+      "transform": "none",
+      "opacity": 1,
+      "overflow": "hidden"
+    },
+    {
+      "type": "IMAGE",
+      "src": "https://storage.googleapis.com/lica-video/485ecf91-cf94-442c-9e48-78247f9d9d0b.png",
+      "left": "231.371px",
+      "top": "129.863px",
+      "width": "617.257px",
+      "height": "227.614px",
+      "transform": "none",
+      "opacity": 1,
+      "overflow": "hidden"
+    }
+  ],
+  "background": "rgb(252, 230, 209)",
+  "width": "1080px",
+  "height": "1080px",
+  "duration": 3
+}

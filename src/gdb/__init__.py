@@ -10,9 +10,9 @@ from .registry import BenchmarkRegistry
 from .runner import BenchmarkRunner
 
 try:
-    __version__ = version("gdb")
+    __version__ = version("lica-gdb")
 except PackageNotFoundError:  # e.g. running from a checkout without install
-    __version__ = "0.1.0"
+    __version__ = "0+unknown"
 
 __all__ = [
     "__version__",
