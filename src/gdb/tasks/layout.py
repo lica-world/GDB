@@ -3559,18 +3559,21 @@ class AspectRatioAdaptation(PartialLayoutCompletion):
                 direct_components=[],
                 eval_size=(eval_w, eval_h),
             )
-            # Force image-edit style conditioning using full editable mask.
-            # This ensures source image guidance is actually consumed by edit-capable APIs.
+            # Force image-edit conditioning with an almost-full mask.
+            # Some providers are unstable with fully-white masks (all editable),
+            # so we keep a 1px non-editable border for robustness.
             mask_h = max(8, source_h)
             mask_w = max(8, source_w)
             full_edit_mask: Any = None
             try:
                 from PIL import Image
 
-                full_edit_mask = Image.fromarray(
-                    np.full((mask_h, mask_w), 255, dtype=np.uint8),
-                    mode="L",
-                )
+                arr = np.full((mask_h, mask_w), 255, dtype=np.uint8)
+                arr[0, :] = 0
+                arr[-1, :] = 0
+                arr[:, 0] = 0
+                arr[:, -1] = 0
+                full_edit_mask = Image.fromarray(arr, mode="L")
             except Exception:
                 full_edit_mask = None
             metadata: Dict[str, Any] = {

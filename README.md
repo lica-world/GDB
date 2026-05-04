@@ -228,7 +228,6 @@ GDB/
 ├── src/gdb/
 │   ├── tasks/              # @benchmark classes — one file per domain
 │   │   ├── category.py     #   category-1, category-2
-│   │   ├── image.py        #   compatibility shim (re-exports image-6)
 │   │   ├── layout.py       #   layout-1 … layout-8
 │   │   ├── lottie.py       #   lottie-1, lottie-2
 │   │   ├── svg.py          #   svg-1 … svg-8

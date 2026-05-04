@@ -879,6 +879,42 @@ class StyledTextGeneration(BaseBenchmark):
             self._append_if_finite(prop_mae_scores, style_scores["property_mae"])
             self._append_if_finite(prop_cov_scores, style_scores["property_coverage"])
 
+        def _collect_bbox_scores(*, image: np.ndarray, gt_item: Dict[str, Any]) -> None:
+            gt_bbox = self._resolve_target_bbox_xyxy(
+                gt=gt_item,
+                image_hw=image.shape[:2],
+            )
+            if gt_bbox is None:
+                return
+
+            mask = self._to_gray_mask(gt_item.get("mask"), image.shape[:2])
+            pred_bbox = self._detect_text_bbox_llm(
+                image=image,
+                expected_text=str(gt_item.get("text", "")),
+                mask_bbox=self._mask_bbox(mask),
+                sample_id=str(gt_item.get("sample_id", "")),
+            )
+            self._append_if_finite(
+                bbox_detection_scores,
+                1.0 if pred_bbox is not None else 0.0,
+            )
+            if pred_bbox is None:
+                # Missed detections explicitly count as zero-overlap predictions.
+                self._append_if_finite(bbox_iou_scores, 0.0)
+                self._append_if_finite(bbox_precision_scores, 0.0)
+                self._append_if_finite(bbox_recall_scores, 0.0)
+                self._append_if_finite(bbox_f1_scores, 0.0)
+                return
+
+            self._append_if_finite(
+                bbox_iou_scores,
+                self._box_iou(pred_bbox, gt_bbox),
+            )
+            precision, recall, f1 = self._box_precision_recall_f1(pred_bbox, gt_bbox)
+            self._append_if_finite(bbox_precision_scores, precision)
+            self._append_if_finite(bbox_recall_scores, recall)
+            self._append_if_finite(bbox_f1_scores, f1)
+
         for pred_raw, gt_raw in zip(predictions, ground_truth):
             gt = self._normalize_gt(gt_raw)
             mode = str(gt.get("evaluation_mode") or "inpaint_reconstruction").strip().lower()
@@ -899,32 +935,7 @@ class StyledTextGeneration(BaseBenchmark):
                 self._append_if_finite(cer_alnum_scores, ocr["cer_alnum"])
                 self._append_if_finite(ocr_acc_alnum_scores, ocr["ocr_accuracy_alnum"])
                 self._append_if_finite(edit_distance_alnum_scores, ocr["edit_distance_alnum"])
-
-                mask = self._to_gray_mask(gt.get("mask"), pred_img.shape[:2])
-                gt_bbox = self._resolve_target_bbox_xyxy(
-                    gt=gt,
-                    image_hw=pred_img.shape[:2],
-                )
-                if gt_bbox is not None:
-                    pred_bbox = self._detect_text_bbox_llm(
-                        image=pred_img,
-                        expected_text=str(gt.get("text", "")),
-                        mask_bbox=self._mask_bbox(mask),
-                        sample_id=str(gt.get("sample_id", "")),
-                    )
-                    self._append_if_finite(
-                        bbox_detection_scores,
-                        1.0 if pred_bbox is not None else 0.0,
-                    )
-                    if pred_bbox is not None:
-                        self._append_if_finite(
-                            bbox_iou_scores,
-                            self._box_iou(pred_bbox, gt_bbox),
-                        )
-                        precision, recall, f1 = self._box_precision_recall_f1(pred_bbox, gt_bbox)
-                        self._append_if_finite(bbox_precision_scores, precision)
-                        self._append_if_finite(bbox_recall_scores, recall)
-                        self._append_if_finite(bbox_f1_scores, f1)
+                _collect_bbox_scores(image=pred_img, gt_item=gt)
 
                 style_pred = self._predict_style_proxy(pred_img)
                 _collect_style_scores(style_pred, gt.get("style_spec") or {})
@@ -938,6 +949,7 @@ class StyledTextGeneration(BaseBenchmark):
 
             mask = self._to_gray_mask(gt.get("mask"), gt_img.shape[:2])
             pred_img = self._resize_to_match(pred_img, gt_img.shape[:2])
+            _collect_bbox_scores(image=pred_img, gt_item=gt)
 
             pred_region = self._crop_to_mask_bbox(pred_img, mask)
             gt_region = self._crop_to_mask_bbox(gt_img, mask)
@@ -2417,6 +2429,11 @@ class MixedStyleTextGeneration(BaseBenchmark):
             "ocr_accuracy_alnum",
             "cer_alnum",
             "edit_distance_alnum",
+            "bbox_iou",
+            "bbox_f1",
+            "bbox_precision",
+            "bbox_recall",
+            "bbox_detection_rate",
             "font_family_top1_accuracy",
             "font_family_top5_accuracy",
             "font_size_mae",
@@ -2468,6 +2485,7 @@ class MixedStyleTextGeneration(BaseBenchmark):
                 continue
 
             style_spec = row.get("style_spec") if isinstance(row.get("style_spec"), dict) else {}
+            bbox_xywh = self._delegate._normalize_bbox_xywh(row.get("bbox_xywh_on_layout"))
             row_prompt = str(row.get("prompt") or "").strip()
             if self._delegate._resolve_use_manifest_prompt() and row_prompt:
                 prompt = row_prompt
@@ -2482,6 +2500,7 @@ class MixedStyleTextGeneration(BaseBenchmark):
                 "mask": mask_path,
                 "input_image": input_path,
                 "evaluation_mode": "inpaint_reconstruction",
+                "target_bbox_xywh_on_layout": bbox_xywh,
             }
             samples.append(
                 {
