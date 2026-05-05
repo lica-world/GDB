@@ -73,6 +73,7 @@ BENCHMARK_INFO: dict = {
     "typography-6": BenchmarkInfo(method="generation_multimodal", max_tokens=256, has_images=True),
 
     # -- typography: generation --
+    "image-6": BenchmarkInfo(method="generation", max_tokens=0, has_images=True, image_gen=True),
     "typography-7": BenchmarkInfo(method="generation", max_tokens=0, has_images=True, image_gen=True),
     "typography-8": BenchmarkInfo(method="generation", max_tokens=0, image_gen=True),
 

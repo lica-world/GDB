@@ -1,6 +1,6 @@
 # GDB: GraphicDesignBench
 
-**GDB** evaluates vision-language models on professional graphic design tasks — layout reasoning, typography, SVG editing, template matching, animation. The paper defines 49 evaluation tasks; this repo ships 39 benchmark pipelines covering 45 of them, organized into 7 code-level domains and built on the [Lica dataset](https://github.com/lica-world/lica-dataset) (1,148 real design layouts).
+**GDB** evaluates vision-language models on professional graphic design tasks — layout reasoning, typography, SVG editing, template matching, animation. The paper defines 49 evaluation tasks; this repo ships 40 benchmark pipelines covering 46 of them, organized into 7 code-level domains and built on the [Lica dataset](https://github.com/lica-world/lica-dataset) (1,148 real design layouts).
 
 **Paper:** [arXiv:2604.04192](https://arxiv.org/abs/2604.04192) &nbsp;|&nbsp; **Dataset:** [HuggingFace](https://huggingface.co/datasets/lica-world/GDB) &nbsp;|&nbsp; **Blog:** [lica.world](https://lica.world/blog/gdb-real-world-benchmark-for-graphic-design)
 
@@ -17,8 +17,8 @@ benchmark pipelines and the paper-level evaluation tasks they score.
 | svg | 8 | 8 | SVG reasoning and editing (perceptual and semantic Q/A, bug fixing, optimization, style editing) and generation (text-to-SVG, image-to-SVG, combined input) |
 | template | 5 | 5 | Template matching, retrieval, clustering, and generation (style completion, color transfer) |
 | temporal | 6 | 8 | Keyframe ordering; motion type classification; video/component duration and start-time estimation; generation (animation parameters, motion trajectory, short-form video) |
-| typography | 8 | 12 | Font family, color, size/weight/alignment/letter spacing/line height, style ranges, curvature, rotation, and generation (styled text element, styled text rendering to layout) |
-| **Totals** | **39** | **45** | |
+| typography | 9 | 13 | Font family, color, size/weight/alignment/letter spacing/line height, style ranges, curvature, rotation, and generation (styled text element, styled text rendering to layout, text removal/background inpainting as `image-6`) |
+| **Totals** | **40** | **46** | |
 
 Benchmarks and paper tasks are not 1:1. Two benchmarks score multiple paper tasks from a
 single model call: `typography-3` extracts font size, weight, alignment, letter spacing,
@@ -60,7 +60,7 @@ pip install -e ".[dev]"              # ruff linter
 
 ```bash
 gdb verify      # zero-config smoke test against a bundled fixture (~30s, no API keys)
-gdb list        # enumerate all 39 benchmarks
+gdb list        # enumerate all 40 benchmarks
 gdb suites      # named suites: v0-all, v0-smoke, v0-understanding, v0-generation
 ```
 
@@ -115,7 +115,7 @@ gdb eval --benchmarks svg-1 \
     --provider hf --device auto \
     --dataset-root data/gdb-dataset
 
-# Diffusion / image generation (defaults to FLUX.2 klein 4B)
+# Diffusion / image generation (defaults to FLUX.2 klein 9B)
 gdb eval --benchmarks layout-1 \
     --provider diffusion \
     --dataset-root data/gdb-dataset
@@ -132,7 +132,7 @@ python -m pip install --no-deps --ignore-requires-python \
 gdb eval --benchmarks layout-1 layout-3 layout-8 typography-7 typography-8 \
     --provider custom \
     --custom-entry gdb.models.local_models:Flux2Model \
-    --custom-init-kwargs '{"model_name":"flux.2-klein-4b"}' \
+    --custom-init-kwargs '{"model_name":"flux.2-klein-9b"}' \
     --custom-modality image_generation \
     --dataset-root data/gdb-dataset
 
@@ -160,7 +160,7 @@ helm-summarize --suite gdb-eval
 helm-server --suite gdb-eval
 ```
 
-All 39 benchmarks are available. See [integrations/helm/](integrations/helm/) for details.
+All 40 benchmarks are available. See [integrations/helm/](integrations/helm/) for details.
 
 ### API keys
 
@@ -219,7 +219,7 @@ GDB/
 │   │   ├── svg.py          #   svg-1 … svg-8
 │   │   ├── template.py     #   template-1 … template-5
 │   │   ├── temporal.py     #   temporal-1 … temporal-6
-│   │   └── typography.py   #   typography-1 … typography-8
+│   │   └── typography.py   #   typography-1 … typography-8 + image-6 implementation
 │   ├── models/             # Provider wrappers (OpenAI, Anthropic, Gemini, HF, vLLM)
 │   ├── metrics/            # Reusable metric functions (IoU, FID, SSIM, LPIPS, edit distance)
 │   ├── evaluation/

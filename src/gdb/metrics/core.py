@@ -76,6 +76,27 @@ def edit_distance(source: str, target: str) -> float:
 # ---------------------------------------------------------------------------
 
 
+def psnr(pred: Any, gt: Any) -> float:
+    """Peak signal-to-noise ratio.
+
+    If the optional third-party ``evaluation.image`` module is available,
+    delegates to it; otherwise uses ``scikit-image``.
+    """
+    try:
+        from evaluation.image import psnr as _psnr
+
+        return _psnr(pred, gt)
+    except ImportError:
+        pass
+
+    try:
+        from skimage.metrics import peak_signal_noise_ratio
+    except ImportError:
+        raise _missing_extra("scikit-image", "metrics")
+
+    return float(peak_signal_noise_ratio(gt, pred))
+
+
 def ssim(pred: Any, gt: Any) -> float:
     """Structural similarity index.
 

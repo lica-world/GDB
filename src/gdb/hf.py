@@ -51,11 +51,85 @@ def _save_image(pil_img: Any, dest: Path) -> str:
 _UNSAFE_CHARS = str.maketrans({c: "_" for c in '/\\:*?"<>|'})
 
 
-def _image_cache_path(cache_dir: Path, benchmark_id: str, sample_id: str) -> Path:
+def _image_cache_path(
+    cache_dir: Path,
+    benchmark_id: str,
+    sample_id: str,
+    *,
+    role: str = "image",
+) -> Path:
     safe_sid = sample_id.translate(_UNSAFE_CHARS)
     if len(safe_sid) > 120:
         safe_sid = hashlib.md5(sample_id.encode()).hexdigest()
-    return cache_dir / benchmark_id / f"{safe_sid}.png"
+    safe_role = role.translate(_UNSAFE_CHARS)
+    return cache_dir / benchmark_id / safe_role / f"{safe_sid}.png"
+
+
+def _cache_row_image(
+    row: Dict[str, Any],
+    key: str,
+    *,
+    cache_dir: Path,
+    benchmark_id: str,
+    sample_id: str,
+    role: str,
+) -> str:
+    pil_img = row.get(key)
+    has_pil = pil_img is not None and hasattr(pil_img, "save")
+    if not has_pil:
+        return ""
+    dest = _image_cache_path(cache_dir, benchmark_id, sample_id, role=role)
+    if dest.exists():
+        return str(dest)
+    return _save_image(pil_img, dest)
+
+
+def _materialize_image_6_assets(
+    sample: Dict[str, Any],
+    row: Dict[str, Any],
+    *,
+    cache_dir: Path,
+    benchmark_id: str,
+) -> None:
+    sample_id = str(sample.get("sample_id", ""))
+    input_image = _cache_row_image(
+        row,
+        "input_image_asset",
+        cache_dir=cache_dir,
+        benchmark_id=benchmark_id,
+        sample_id=sample_id,
+        role="input",
+    ) or sample.get("image_path", "")
+    mask = _cache_row_image(
+        row,
+        "mask_asset",
+        cache_dir=cache_dir,
+        benchmark_id=benchmark_id,
+        sample_id=sample_id,
+        role="mask",
+    )
+    target = _cache_row_image(
+        row,
+        "ground_truth_image_asset",
+        cache_dir=cache_dir,
+        benchmark_id=benchmark_id,
+        sample_id=sample_id,
+        role="ground_truth",
+    )
+
+    if input_image:
+        sample["input_image"] = input_image
+    if mask:
+        sample["mask"] = mask
+
+    ground_truth = sample.get("ground_truth")
+    if not isinstance(ground_truth, dict):
+        ground_truth = {"image": ground_truth} if ground_truth else {}
+    if target:
+        ground_truth["image"] = target
+    if mask:
+        ground_truth["mask"] = mask
+    sample["ground_truth"] = ground_truth
 
 
 def load_from_hub(
@@ -84,7 +158,17 @@ def load_from_hub(
         cache_dir = _DEFAULT_CACHE
 
     logger.info("Loading %s from HuggingFace (%s)...", benchmark_id, repo_id)
-    ds = load_dataset(repo_id, benchmark_id, split="train", streaming=True)
+    try:
+        ds = load_dataset(repo_id, benchmark_id, split="train", streaming=True)
+    except ValueError as exc:
+        if benchmark_id == "image-6":
+            raise ValueError(
+                "The HuggingFace dataset does not currently expose an image-6 "
+                "configuration with source/mask/target assets. Run image-6 with "
+                "--dataset-root, or upload image-6 using scripts/upload_to_hf.py "
+                "from a commit that includes auxiliary image asset columns."
+            ) from exc
+        raise
 
     samples: List[Dict[str, Any]] = []
     for row in ds:
@@ -112,7 +196,12 @@ def load_from_hub(
         pil_img = row.get("image")
         has_pil = pil_img is not None and hasattr(pil_img, "save")
         if has_pil:
-            dest = _image_cache_path(cache_dir, benchmark_id, sample["sample_id"])
+            dest = _image_cache_path(
+                cache_dir,
+                benchmark_id,
+                sample["sample_id"],
+                role="image",
+            )
             if dest.exists():
                 img_path = str(dest)
             else:
@@ -120,6 +209,14 @@ def load_from_hub(
             sample["image_path"] = img_path
         else:
             sample["image_path"] = ""
+
+        if benchmark_id == "image-6":
+            _materialize_image_6_assets(
+                sample,
+                row,
+                cache_dir=cache_dir,
+                benchmark_id=benchmark_id,
+            )
 
         samples.append(sample)
         if n is not None and len(samples) >= n:

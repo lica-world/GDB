@@ -20,6 +20,7 @@ from .registry import register_model
 
 logger = logging.getLogger(__name__)
 
+
 def _is_fatal_load_error(exc: BaseException) -> bool:
     """True for errors that should abort the model-loader fallback loop.
 
@@ -538,10 +539,12 @@ class VLLMDiffusionModel(BaseModel):
             return
         try:
             from vllm_omni import Omni  # type: ignore[reportMissingImports]
-        except ImportError:
+        except ImportError as exc:
             raise ImportError(
-                'vllm-omni is required for diffusion models. Install with: pip install -e ".[vllm-omni]"'
-            )
+                "vllm-omni is required for diffusion models. "
+                'Install with: pip install -e ".[vllm-omni]". '
+                f"Import error: {exc}"
+            ) from exc
 
         self._omni = Omni(model=self.model_id)
 
@@ -789,7 +792,7 @@ class Flux2Model(BaseModel):
         python scripts/run_benchmarks.py --benchmarks layout-8 \
             --provider custom \
             --custom-entry gdb.models.local_models:Flux2Model \
-            --custom-init-kwargs '{"model_name":"flux.2-klein-4b"}' \
+            --custom-init-kwargs '{"model_name":"flux.2-klein-9b"}' \
             --custom-modality image_generation
     """
 
@@ -807,13 +810,12 @@ class Flux2Model(BaseModel):
 
     def __init__(
         self,
-        model_name: str = "flux.2-klein-4b",
+        model_name: str = "flux.2-klein-9b",
         device: str = "cuda",
         num_steps: Optional[int] = None,
         guidance: Optional[float] = None,
         seed: Optional[int] = None,
         debug_mode: bool = False,
-        preserve_unmasked_regions: bool = True,
         default_width: int = 1024,
         default_height: int = 1024,
         **kwargs: Any,
@@ -830,7 +832,6 @@ class Flux2Model(BaseModel):
         self.guidance = float(guidance) if guidance is not None else None
         self.seed = int(seed) if seed is not None else None
         self.debug_mode = bool(debug_mode)
-        self.preserve_unmasked_regions = bool(preserve_unmasked_regions)
         self.default_width = max(64, int(default_width))
         self.default_height = max(64, int(default_height))
         self._bundle: Optional[Dict[str, Any]] = None
@@ -1159,33 +1160,6 @@ class Flux2Model(BaseModel):
             )
         return self.guidance
 
-    def _compose_masked_output(self, inp: ModelInput, input_images: List[Any], generated: Any) -> Any:
-        if not self.preserve_unmasked_regions or not input_images:
-            return generated
-
-        if (inp.metadata or {}).get("skip_mask_composition", False):
-            return generated
-
-        mask = self._coerce_pil_image((inp.metadata or {}).get("mask"))
-        if mask is None:
-            return generated
-
-        try:
-            from PIL import Image  # type: ignore[reportMissingImports]
-        except ImportError:
-            return generated
-
-        base = input_images[0].convert("RGB")
-        output = generated.convert("RGB")
-        if output.size != base.size:
-            output = output.resize(base.size, Image.Resampling.LANCZOS)
-        mask_l = mask.convert("L")
-        if mask_l.size != base.size:
-            mask_l = mask_l.resize(base.size, Image.Resampling.NEAREST)
-        if mask_l.getextrema() == (255, 255):
-            return generated
-        return Image.composite(output, base, mask_l)
-
     def predict(self, inp: ModelInput) -> ModelOutput:
         bundle = self._ensure_loaded()
         torch = bundle["torch"]
@@ -1260,8 +1234,6 @@ class Flux2Model(BaseModel):
             from PIL import Image  # type: ignore[reportMissingImports]
 
             generated = Image.fromarray((127.5 * (x + 1.0)).cpu().byte().numpy())
-
-        generated = self._compose_masked_output(inp, input_images, generated)
 
         return ModelOutput(
             images=[generated],

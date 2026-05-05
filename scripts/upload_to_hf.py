@@ -50,6 +50,31 @@ def _find_image(sample: Dict[str, Any]) -> Optional[str]:
     return None
 
 
+def _find_path(value: Any) -> Optional[str]:
+    if isinstance(value, str) and value and Path(value).exists() and _is_image_file(value):
+        return value
+    return None
+
+
+def _image_assets_for_sample(sample: Dict[str, Any]) -> Dict[str, Optional[str]]:
+    ground_truth = sample.get("ground_truth")
+    gt_image = None
+    if isinstance(ground_truth, dict):
+        gt_image = _find_path(
+            ground_truth.get("image")
+            or ground_truth.get("ground_truth_image")
+            or ground_truth.get("target_image")
+        )
+    elif isinstance(ground_truth, str):
+        gt_image = _find_path(ground_truth)
+
+    return {
+        "input_image_asset": _find_path(sample.get("input_image")),
+        "mask_asset": _find_path(sample.get("mask") or sample.get("text_mask")),
+        "ground_truth_image_asset": gt_image,
+    }
+
+
 def _is_video(path: str) -> bool:
     return path.lower().endswith(".mp4")
 
@@ -98,6 +123,7 @@ def load_via_registry(
                  for k, v in sample.items() if k not in metadata_skip}
 
         media_path_rel = _normalize_paths(img_path, dataset_root_str) if img_path else ""
+        image_assets = _image_assets_for_sample(sample)
 
         rows_out.append({
             "sample_id": str(sample.get("sample_id", "")),
@@ -108,6 +134,9 @@ def load_via_registry(
             "prompt": sample.get("prompt", ""),
             "ground_truth": _serialize(sample.get("ground_truth", "")),
             "image": img_path if has_image else None,
+            "input_image_asset": image_assets["input_image_asset"],
+            "mask_asset": image_assets["mask_asset"],
+            "ground_truth_image_asset": image_assets["ground_truth_image_asset"],
             "media_path": media_path_rel,
             "media_type": "video" if is_vid else ("image" if has_image else "none"),
             "metadata": json.dumps(extra, ensure_ascii=False, default=str) if extra else "{}",
@@ -143,6 +172,9 @@ def build_dataset(all_rows: List[Dict[str, Any]]):
     import datasets
 
     has_images = any(r["image"] is not None for r in all_rows)
+    has_input_images = any(r.get("input_image_asset") is not None for r in all_rows)
+    has_masks = any(r.get("mask_asset") is not None for r in all_rows)
+    has_gt_images = any(r.get("ground_truth_image_asset") is not None for r in all_rows)
 
     features = datasets.Features({
         "sample_id": datasets.Value("string"),
@@ -153,6 +185,9 @@ def build_dataset(all_rows: List[Dict[str, Any]]):
         "prompt": datasets.Value("large_string"),
         "ground_truth": datasets.Value("large_string"),
         "image": datasets.Image() if has_images else datasets.Value("string"),
+        "input_image_asset": datasets.Image() if has_input_images else datasets.Value("string"),
+        "mask_asset": datasets.Image() if has_masks else datasets.Value("string"),
+        "ground_truth_image_asset": datasets.Image() if has_gt_images else datasets.Value("string"),
         "media_path": datasets.Value("string"),
         "media_type": datasets.Value("string"),
         "metadata": datasets.Value("large_string"),
@@ -164,6 +199,16 @@ def build_dataset(all_rows: List[Dict[str, Any]]):
                 r["image"] = None
         else:
             r["image"] = ""
+        for key, has_asset in (
+            ("input_image_asset", has_input_images),
+            ("mask_asset", has_masks),
+            ("ground_truth_image_asset", has_gt_images),
+        ):
+            if has_asset:
+                if not r.get(key):
+                    r[key] = None
+            else:
+                r[key] = ""
 
     return datasets.Dataset.from_list(all_rows, features=features)
 
@@ -233,7 +278,7 @@ configs:
 
 # GDB: GraphicDesignBench
 
-39 benchmarks for evaluating vision-language models on graphic design tasks — layout, typography, SVG, template matching, animation. Built on 1,148 real design layouts from the [Lica dataset](https://lica.world).
+40 benchmarks for evaluating vision-language models on graphic design tasks — layout, typography, SVG, template matching, animation. Built on 1,148 real design layouts from the [Lica dataset](https://lica.world).
 
 **Paper:** [arXiv:2604.04192](https://arxiv.org/abs/2604.04192) &nbsp;|&nbsp; **Code:** [github.com/lica-world/GDB](https://github.com/lica-world/GDB) &nbsp;|&nbsp; **Blog:** [lica.world](https://lica.world/blog/gdb-real-world-benchmark-for-graphic-design)
 
@@ -256,6 +301,9 @@ ds = load_dataset("lica-world/GDB", "svg-1")
 | `prompt` | string | Evaluation prompt |
 | `ground_truth` | string | Expected answer (JSON for complex types) |
 | `image` | Image | Input image (when applicable) |
+| `input_image_asset` | Image | Auxiliary source image for generation/editing tasks |
+| `mask_asset` | Image | Auxiliary edit mask for generation/editing tasks |
+| `ground_truth_image_asset` | Image | Auxiliary target/reference image for generation metrics |
 | `metadata` | string | Task-specific fields as JSON |
 
 ## Evaluation

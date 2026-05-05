@@ -82,6 +82,9 @@ class OpenAIImageModel(BaseModel):
     """OpenAI image model wrapper for generation/editing workflows."""
 
     modality = Modality.IMAGE_GENERATION
+    supports_image_output = True
+    supports_image_input = True
+    supports_mask_editing = True
 
     def __init__(
         self,
@@ -300,6 +303,9 @@ class GeminiModel(BaseModel):
         self.model_id = self._resolve_model_id(model_id)
         self.name = self.model_id
         self.modality = self._infer_modality(self.model_id)
+        self.supports_image_output = self.modality == Modality.IMAGE_GENERATION
+        self.supports_image_input = True
+        self.supports_mask_editing = self.modality == Modality.IMAGE_GENERATION
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.adaptive_image_config = adaptive_image_config

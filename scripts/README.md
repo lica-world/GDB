@@ -46,7 +46,7 @@ python scripts/run_benchmarks.py --benchmarks svg-6 \
     --provider vllm --model-id Qwen/Qwen3-VL-4B-Instruct --top-k 20 --top-p 0.8 \
     --dataset-root data/gdb-dataset
 
-# Diffusion / image generation (defaults to FLUX.2 klein 4B)
+# Diffusion / image generation (defaults to FLUX.2 klein 9B)
 python scripts/run_benchmarks.py --benchmarks layout-1 \
     --provider diffusion \
     --dataset-root data/gdb-dataset
@@ -69,7 +69,7 @@ python -m pip install --no-deps --ignore-requires-python \
 python scripts/run_benchmarks.py --benchmarks layout-1 layout-3 layout-8 typography-7 typography-8 \
     --provider custom \
     --custom-entry gdb.models.local_models:Flux2Model \
-    --custom-init-kwargs '{"model_name":"flux.2-klein-4b"}' \
+    --custom-init-kwargs '{"model_name":"flux.2-klein-9b"}' \
     --custom-modality image_generation \
     --dataset-root data/gdb-dataset
 
@@ -100,7 +100,7 @@ from Hugging Face and can use either environment tokens (`HF_TOKEN`,
 `HF_HUB_TOKEN`) or an existing cached login/token file.
 
 The default local text/VLM model ID is now `Qwen/Qwen3-VL-4B-Instruct` for both
-`hf` and `vllm`, and the default `diffusion` model ID is `flux.2-klein-4b`.
+`hf` and `vllm`, and the default `diffusion` model ID is `flux.2-klein-9b`.
 
 ### Batch submit/collect (~50% cheaper)
 

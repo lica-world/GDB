@@ -1,6 +1,6 @@
 # lica-gdb-helm
 
-HELM integration for [GDB (GraphicDesignBench)](https://github.com/lica-world/GDB) — run all 39 GDB benchmarks through Stanford CRFM's [HELM](https://github.com/stanford-crfm/helm) framework.
+HELM integration for [GDB (GraphicDesignBench)](https://github.com/lica-world/GDB) — run all 40 GDB benchmarks through Stanford CRFM's [HELM](https://github.com/stanford-crfm/helm) framework.
 
 ## Install
 
@@ -35,7 +35,7 @@ helm-server --suite gdb-eval
 
 ## Available benchmarks
 
-All 39 GDB benchmarks are available. Pass any benchmark ID:
+All 40 GDB benchmarks are available. Pass any benchmark ID:
 
 | Domain | Benchmark IDs |
 |--------|--------------|
@@ -44,7 +44,7 @@ All 39 GDB benchmarks are available. Pass any benchmark ID:
 | SVG | `svg-1` through `svg-8` |
 | Template | `template-1` through `template-5` |
 | Temporal | `temporal-1` through `temporal-6` |
-| Typography | `typography-1` through `typography-8` |
+| Typography | `typography-1` through `typography-8`, `image-6` |
 | Lottie | `lottie-1`, `lottie-2` |
 
 ## Options

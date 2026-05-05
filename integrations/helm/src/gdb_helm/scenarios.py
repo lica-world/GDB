@@ -1,6 +1,6 @@
 """HELM Scenario that wraps any GDB benchmark.
 
-One parameterized class handles all 39 benchmarks by delegating data loading
+One parameterized class handles all 40 benchmarks by delegating data loading
 and prompt construction to the ``gdb`` package.
 """
 
