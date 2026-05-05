@@ -2974,6 +2974,15 @@ class TextRemoval(BaseBenchmark):
     def build_model_input(self, sample: Dict[str, Any], *, modality: Any = None) -> Any:
         from gdb.models.base import ModelInput
 
+        for key in ("input_image", "mask"):
+            value = sample.get(key)
+            if not value or not self._image_like_exists(value):
+                raise FileNotFoundError(
+                    f"image-6 sample {sample.get('sample_id', '')!r} is missing a local "
+                    f"{key!r} asset. When running without --dataset-root, ensure the "
+                    "HuggingFace config includes materialized input_image_asset and mask_asset columns."
+                )
+
         prompt = self._resolve_model_prompt(
             user_prompt=str(sample.get("prompt") or ""),
             forbidden_texts=self._parse_forbidden_texts(sample.get("forbidden_texts")),
@@ -2994,6 +3003,17 @@ class TextRemoval(BaseBenchmark):
             images=[sample["input_image"]],
             metadata=metadata,
         )
+
+    @staticmethod
+    def _image_like_exists(value: Any) -> bool:
+        if isinstance(value, (bytes, bytearray)):
+            return True
+        if hasattr(value, "save"):
+            return True
+        if isinstance(value, (str, Path)):
+            text = str(value).strip()
+            return bool(text) and Path(text).is_file()
+        return False
 
     @staticmethod
     def _read_image_size(image_like: Any) -> Tuple[int, int]:
@@ -3547,6 +3567,14 @@ class TextRemoval(BaseBenchmark):
 
         if cls._remove_evaluator_bundle is None:
             try:
+                try:
+                    import segment_anything  # noqa: F401
+                except ImportError as exc:
+                    raise ImportError(
+                        "segment-anything is required before downloading/loading the SAM "
+                        "checkpoint for ReMOVE."
+                    ) from exc
+
                 from gdb.metrics.remove_metric import (
                     DEFAULT_SAM_CHECKPOINT_PATH,
                     RemoveMetricEvaluator,

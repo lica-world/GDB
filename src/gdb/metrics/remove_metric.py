@@ -203,4 +203,3 @@ class RemoveMetricEvaluator:
 
         score = cosine_similarity(fg, bg).item()
         return float(np.clip(score, -1.0, 1.0))
-

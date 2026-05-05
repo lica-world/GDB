@@ -1,10 +1,6 @@
 # GDB: GraphicDesignBench
 
-<<<<<<< text-removal-implementation
-**GDB** evaluates vision-language models on professional graphic design tasks — layout reasoning, typography, SVG editing, template matching, animation. 40 benchmarks across 7 domains, built on the [Lica dataset](https://github.com/lica-world/lica-dataset) (1,148 real design layouts).
-=======
-**GDB** evaluates vision-language models on professional graphic design tasks — layout reasoning, typography, SVG editing, template matching, animation. The paper defines 49 evaluation tasks; this repo ships 39 benchmark pipelines covering 45 of them, organized into 7 code-level domains and built on the [Lica dataset](https://github.com/lica-world/lica-dataset) (1,148 real design layouts).
->>>>>>> main
+**GDB** evaluates vision-language models on professional graphic design tasks — layout reasoning, typography, SVG editing, template matching, animation. The paper defines 49 evaluation tasks; this repo ships 40 benchmark pipelines covering 46 of them, organized into 7 code-level domains and built on the [Lica dataset](https://github.com/lica-world/lica-dataset) (1,148 real design layouts).
 
 **Paper:** [arXiv:2604.04192](https://arxiv.org/abs/2604.04192) &nbsp;|&nbsp; **Dataset:** [HuggingFace](https://huggingface.co/datasets/lica-world/GDB) &nbsp;|&nbsp; **Blog:** [lica.world](https://lica.world/blog/gdb-real-world-benchmark-for-graphic-design)
 
@@ -20,13 +16,9 @@ benchmark pipelines and the paper-level evaluation tasks they score.
 | lottie | 2 | 2 | Lottie animation generation from text and image |
 | svg | 8 | 8 | SVG reasoning and editing (perceptual and semantic Q/A, bug fixing, optimization, style editing) and generation (text-to-SVG, image-to-SVG, combined input) |
 | template | 5 | 5 | Template matching, retrieval, clustering, and generation (style completion, color transfer) |
-<<<<<<< text-removal-implementation
-| temporal | 8 | 6 | Keyframe ordering; motion type classification; video/component duration and start-time estimation; generation (animation parameters, motion trajectory, short-form video) |
-| typography | 13 | 9 | Font family, color, size/weight/alignment/letter spacing/line height, style ranges, curvature, rotation, and generation (styled text element, styled text rendering to layout, text removal/background inpainting as `image-6`) |
-=======
 | temporal | 6 | 8 | Keyframe ordering; motion type classification; video/component duration and start-time estimation; generation (animation parameters, motion trajectory, short-form video) |
-| typography | 8 | 12 | Font family, color, size/weight/alignment/letter spacing/line height, style ranges, curvature, rotation, and generation (styled text element, styled text rendering to layout) |
-| **Totals** | **39** | **45** | |
+| typography | 9 | 13 | Font family, color, size/weight/alignment/letter spacing/line height, style ranges, curvature, rotation, and generation (styled text element, styled text rendering to layout, text removal/background inpainting as `image-6`) |
+| **Totals** | **40** | **46** | |
 
 Benchmarks and paper tasks are not 1:1. Two benchmarks score multiple paper tasks from a
 single model call: `typography-3` extracts font size, weight, alignment, letter spacing,
@@ -38,7 +30,6 @@ The paper additionally defines four layout-understanding tasks — layer order
 (`layout-u-5`), image rotation (`layout-u-6`), crop shape (`layout-u-7`), and frame
 detection (`layout-u-8`) — that do not have a runnable pipeline in the repo; see the
 paper for their definitions.
->>>>>>> main
 
 ## Setup
 
@@ -69,7 +60,7 @@ pip install -e ".[dev]"              # ruff linter
 
 ```bash
 gdb verify      # zero-config smoke test against a bundled fixture (~30s, no API keys)
-gdb list        # enumerate all 39 benchmarks
+gdb list        # enumerate all 40 benchmarks
 gdb suites      # named suites: v0-all, v0-smoke, v0-understanding, v0-generation
 ```
 
@@ -124,13 +115,8 @@ gdb eval --benchmarks svg-1 \
     --provider hf --device auto \
     --dataset-root data/gdb-dataset
 
-<<<<<<< text-removal-implementation
 # Diffusion / image generation (defaults to FLUX.2 klein 9B)
-python scripts/run_benchmarks.py --benchmarks layout-1 \
-=======
-# Diffusion / image generation (defaults to FLUX.2 klein 4B)
 gdb eval --benchmarks layout-1 \
->>>>>>> main
     --provider diffusion \
     --dataset-root data/gdb-dataset
 
