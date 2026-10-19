@@ -568,7 +568,9 @@ class PairwiseLayoutMatching(BaseBenchmark):
         try:
             from sklearn.metrics import precision_recall_fscore_support
 
-            p, r, f, _ = precision_recall_fscore_support(hard_gt, hard_preds, average="macro", zero_division=0)
+            p, r, f, _ = precision_recall_fscore_support(
+                hard_gt, hard_preds, labels=["1"], average="micro", zero_division=0
+            )
             result.update({"precision": float(p), "recall": float(r), "f1": float(f)})
         except ImportError:
             result.update({"precision": acc, "recall": acc, "f1": acc})
@@ -661,7 +663,7 @@ class LayoutRetrieval(BaseBenchmark):
         return [t for t in tokens if len(t) >= 15 and t.isalnum()]
 
     def evaluate(self, predictions, ground_truth):
-        ranked = [p if isinstance(p, list) else [] for p in predictions]
+        ranked = [list(dict.fromkeys(p)) if isinstance(p, list) else [] for p in predictions]
         return {
             "mrr": _mean_reciprocal_rank(ranked, ground_truth),
             "map": _mean_average_precision(ranked, ground_truth),

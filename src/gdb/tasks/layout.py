@@ -24,6 +24,7 @@ import numpy as np
 
 from gdb.base import BaseBenchmark, BenchmarkMeta, TaskType, benchmark
 from gdb.metrics.core import fid as fid_metric
+from gdb.tasks.typography import TextRotation
 from gdb.utils.data_helpers import build_vision_input, load_csv_samples
 from gdb.utils.text_helpers import extract_json_obj
 
@@ -4730,6 +4731,174 @@ class ComponentDetection(BaseBenchmark):
         pred_lists = [p if isinstance(p, list) else [] for p in predictions]
         gt_lists = [g if isinstance(g, list) else [] for g in ground_truth]
         return _detection_map(pred_lists, gt_lists)
+
+
+# ===========================================================================
+# Implemented — layout-9 through layout-12
+# ===========================================================================
+
+_CROP_SHAPE_ALIASES = {
+    "rect": "rectangle",
+    "rounded_rect": "rounded_rectangle",
+    "ellipse": "circle",
+    "oval": "circle",
+}
+
+
+@benchmark
+class LayerOrderPrediction(BaseBenchmark):
+    """layout-9 — Predict the back-to-front stacking order of the top-level components."""
+
+    pipeline_implemented = True
+
+    meta = BenchmarkMeta(
+        id="layout-9",
+        name="Layer Order Prediction",
+        task_type=TaskType.UNDERSTANDING,
+        domain="layout",
+        data_subpath="layout/LayerOrder",
+        description="Predict the z-order (back-to-front stacking) of components",
+        input_spec="Rendered layout image + list of its top-level components",
+        output_spec="Component identifiers ordered from back to front",
+        metrics=["kendall_tau", "spearman_rho"],
+        tags=["P3", "high-complexity"],
+    )
+
+    def load_data(self, data_dir, *, n=None, dataset_root: Union[str, Path]):
+        return load_csv_samples(data_dir, n=n, dataset_root=dataset_root)
+
+    def build_model_input(self, sample, *, modality=None):
+        return build_vision_input(sample, modality=modality)
+
+    def parse_model_output(self, output):
+        return [f"E{t}" for t in re.findall(r"E?(\d+)", output.text.strip())]
+
+    def evaluate(self, predictions, ground_truth):
+        from scipy.stats import kendalltau, spearmanr
+
+        tau_scores: List[float] = []
+        rho_scores: List[float] = []
+        for pred, gt in zip(predictions, ground_truth):
+            if not pred or not gt:
+                continue
+            rank = {item: i for i, item in enumerate(gt)}
+            ranks = [rank[item] for item in pred if item in rank]
+            if len(ranks) < 2:
+                tau_scores.append(0.0)
+                rho_scores.append(0.0)
+                continue
+            tau = kendalltau(list(range(len(ranks))), ranks)[0]
+            rho = spearmanr(list(range(len(ranks))), ranks)[0]
+            tau_scores.append(0.0 if tau != tau else float(tau))
+            rho_scores.append(0.0 if rho != rho else float(rho))
+        n = max(len(tau_scores), 1)
+        return {"kendall_tau": sum(tau_scores) / n, "spearman_rho": sum(rho_scores) / n}
+
+
+@benchmark
+class ImageRotation(TextRotation):
+    """layout-10 — Detect whether a target image is rotated and estimate the angle."""
+
+    meta = BenchmarkMeta(
+        id="layout-10",
+        name="Image Rotation",
+        task_type=TaskType.UNDERSTANDING,
+        domain="layout",
+        data_subpath="layout/ImageRotation",
+        description="Detect whether a target image is rotated and estimate the angle",
+        input_spec="Rendered layout image + description of the target image",
+        output_spec="JSON with is_rotated and angle",
+        metrics=["is_rotated_accuracy", "angle_mae", "angle_mae_rotated_only"],
+    )
+
+
+@benchmark
+class ImageCropShape(BaseBenchmark):
+    """layout-11 — Detect whether a target image is cropped and classify the crop shape."""
+
+    pipeline_implemented = True
+
+    meta = BenchmarkMeta(
+        id="layout-11",
+        name="Image Crop Shape",
+        task_type=TaskType.UNDERSTANDING,
+        domain="layout",
+        data_subpath="layout/ImageCropShape",
+        description="Detect whether a target image is cropped and classify the crop shape",
+        input_spec="Rendered layout image + description of the target image",
+        output_spec="JSON with is_cropped and crop_shape",
+        metrics=["is_cropped_accuracy", "shape_accuracy", "shape_accuracy_cropped_only"],
+    )
+
+    def load_data(self, data_dir, *, n=None, dataset_root: Union[str, Path]):
+        return load_csv_samples(data_dir, n=n, dataset_root=dataset_root)
+
+    def build_model_input(self, sample, *, modality=None):
+        return build_vision_input(sample, modality=modality)
+
+    def parse_model_output(self, output):
+        parsed = extract_json_obj(output.text.strip())
+        if not isinstance(parsed, dict):
+            return {"is_cropped": False, "crop_shape": "none"}
+        shape = str(parsed.get("crop_shape") or "none").strip().lower().replace(" ", "_").replace("-", "_")
+        return {"is_cropped": bool(parsed.get("is_cropped")), "crop_shape": _CROP_SHAPE_ALIASES.get(shape, shape)}
+
+    def evaluate(self, predictions, ground_truth):
+        pairs = [(p, g) for p, g in zip(predictions, ground_truth) if isinstance(p, dict) and isinstance(g, dict)]
+        cropped = [(p, g) for p, g in pairs if g.get("is_cropped")]
+        return {
+            "is_cropped_accuracy": sum(
+                bool(p.get("is_cropped")) == bool(g.get("is_cropped")) for p, g in pairs
+            ) / max(len(pairs), 1),
+            "shape_accuracy": sum(p.get("crop_shape") == g.get("crop_shape") for p, g in pairs) / max(len(pairs), 1),
+            "shape_accuracy_cropped_only": sum(
+                p.get("crop_shape") == g.get("crop_shape") for p, g in cropped
+            ) / max(len(cropped), 1),
+        }
+
+
+@benchmark
+class FrameDetection(BaseBenchmark):
+    """layout-12 — Detect whether a target image is placed inside a decorative frame."""
+
+    pipeline_implemented = True
+
+    meta = BenchmarkMeta(
+        id="layout-12",
+        name="Frame Detection",
+        task_type=TaskType.UNDERSTANDING,
+        domain="layout",
+        data_subpath="layout/FrameDetection",
+        description="Detect whether a target image is placed inside a decorative frame",
+        input_spec="Rendered layout image + description of the target image",
+        output_spec="JSON with is_framed",
+        metrics=["accuracy", "precision", "recall", "f1"],
+    )
+
+    def load_data(self, data_dir, *, n=None, dataset_root: Union[str, Path]):
+        return load_csv_samples(data_dir, n=n, dataset_root=dataset_root)
+
+    def build_model_input(self, sample, *, modality=None):
+        return build_vision_input(sample, modality=modality)
+
+    def parse_model_output(self, output):
+        parsed = extract_json_obj(output.text.strip())
+        return {"is_framed": bool(parsed.get("is_framed")) if isinstance(parsed, dict) else False}
+
+    def evaluate(self, predictions, ground_truth):
+        pred = [bool(p.get("is_framed")) if isinstance(p, dict) else False for p in predictions]
+        gt = [bool(g.get("is_framed")) if isinstance(g, dict) else False for g in ground_truth]
+        tp = sum(p and g for p, g in zip(pred, gt))
+        fp = sum(p and not g for p, g in zip(pred, gt))
+        fn = sum(g and not p for p, g in zip(pred, gt))
+        prec = tp / (tp + fp) if tp + fp else 0.0
+        rec = tp / (tp + fn) if tp + fn else 0.0
+        return {
+            "accuracy": sum(p == g for p, g in zip(pred, gt)) / max(len(gt), 1),
+            "precision": prec,
+            "recall": rec,
+            "f1": 2 * prec * rec / (prec + rec) if prec + rec else 0.0,
+        }
 
 
 class _LayerInsertionImageUtils:

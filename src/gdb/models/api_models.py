@@ -59,7 +59,7 @@ class OpenAIModel(BaseModel):
             model=self.model_id,
             messages=[{"role": "user", "content": content}],
             temperature=self.temperature,
-            max_tokens=self.max_tokens,
+            max_completion_tokens=self.max_tokens,
         )
         choice = response.choices[0]
         return ModelOutput(

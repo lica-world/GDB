@@ -1,6 +1,6 @@
 # GDB: GraphicDesignBench
 
-**GDB** evaluates vision-language models on professional graphic design tasks — layout reasoning, typography, SVG editing, template matching, animation. The paper defines 49 evaluation tasks; this repo ships 40 benchmark pipelines covering 46 of them, organized into 7 code-level domains and built on the [Lica dataset](https://github.com/lica-world/lica-dataset) (1,148 real design layouts).
+**GDB** evaluates vision-language models on professional graphic design tasks — layout reasoning, typography, SVG editing, template matching, animation. The paper defines 49 evaluation tasks; this repo ships 44 benchmark pipelines covering all of them, organized into 7 code-level domains and built on the [Lica dataset](https://github.com/lica-world/lica-dataset) (1,148 real design layouts).
 
 **Paper:** [arXiv:2604.04192](https://arxiv.org/abs/2604.04192) &nbsp;|&nbsp; **Dataset:** [HuggingFace](https://huggingface.co/datasets/lica-world/GDB) &nbsp;|&nbsp; **Blog:** [lica.world](https://lica.world/blog/gdb-real-world-benchmark-for-graphic-design)
 
@@ -12,13 +12,13 @@ benchmark pipelines and the paper-level evaluation tasks they score.
 | Repo domain | Benchmarks | Paper tasks | Description |
 |---|--:|--:|---|
 | category | 2 | 2 | Design category classification and user intent prediction |
-| layout | 8 | 8 | Spatial reasoning over design canvases (aspect ratio, element counting, component type and detection), layout generation (intent-to-layout, partial completion, aspect-ratio adaptation), and layer-aware object insertion (`layout-8`, reference- or description-guided per sample) |
+| layout | 12 | 12 | Spatial reasoning over design canvases (aspect ratio, element counting, component type and detection, layer order, image rotation, crop shape, frame detection), layout generation (intent-to-layout, partial completion, aspect-ratio adaptation), and layer-aware object insertion (`layout-8`, reference- or description-guided per sample) |
 | lottie | 2 | 2 | Lottie animation generation from text and image |
 | svg | 8 | 8 | SVG reasoning and editing (perceptual and semantic Q/A, bug fixing, optimization, style editing) and generation (text-to-SVG, image-to-SVG, combined input) |
 | template | 5 | 5 | Template matching, retrieval, clustering, and generation (style completion, color transfer) |
 | temporal | 6 | 8 | Keyframe ordering; motion type classification; video/component duration and start-time estimation; generation (animation parameters, motion trajectory, short-form video) |
 | typography | 9 | 13 | Font family, color, size/weight/alignment/letter spacing/line height, style ranges, curvature, rotation, and generation (styled text element, styled text rendering to layout, text removal/background inpainting as `image-6`) |
-| **Totals** | **40** | **46** | |
+| **Totals** | **44** | **50** | |
 
 Benchmarks and paper tasks are not 1:1. Two benchmarks score multiple paper tasks from a
 single model call: `typography-3` extracts font size, weight, alignment, letter spacing,
@@ -26,10 +26,12 @@ and line height as one JSON object (5 paper tasks), and `temporal-3` does the sa
 motion type plus three timing fields (4 paper tasks). This matches how a designer thinks
 about these attributes, and avoids issuing 9 separate prompts per sample.
 
-The paper additionally defines four layout-understanding tasks — layer order
-(`layout-u-5`), image rotation (`layout-u-6`), crop shape (`layout-u-7`), and frame
-detection (`layout-u-8`) — that do not have a runnable pipeline in the repo; see the
-paper for their definitions.
+Layer order (`layout-9`), image rotation (`layout-10`), crop shape (`layout-11`), and frame
+detection (`layout-12`) use the nested component tree, image alt text, and element subtypes of
+the v1 Lica layouts. Their samples ship in `benchmarks/layout/` (built with
+`scripts/build_lica_v1_tasks.py`); copy them into `data/gdb-dataset/benchmarks/layout/`. The
+images they reference are the renders in `lica-data/`, also available from the
+[LICA dataset](https://huggingface.co/datasets/lica-world/lica-dataset).
 
 ## Setup
 
@@ -60,7 +62,7 @@ pip install -e ".[dev]"              # ruff linter
 
 ```bash
 gdb verify      # zero-config smoke test against a bundled fixture (~30s, no API keys)
-gdb list        # enumerate all 40 benchmarks
+gdb list        # enumerate all 44 benchmarks
 gdb suites      # named suites: v0-all, v0-smoke, v0-understanding, v0-generation
 ```
 

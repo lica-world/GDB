@@ -1,0 +1,509 @@
+{
+  "data_root": "lica-data",
+  "layout_index": {
+    "02OCmOVL2enVqZDHN1Ac": "fc58d611-f006-feb5-fd85-fa145dd0c69e",
+    "0hy0NgqYDUdHLoBy13UB": "5972e663-9f6e-46b6-bafa-3ac29ecaa4df",
+    "2GagOUPHI9oByZN8oNry": "a902e896-7baa-4f3e-b5ab-aba3173990e7",
+    "2icW9N7aPGArHLkopPRX": "g158fcaf-g1b0-g46f-g30d-ga9800fdda68",
+    "3ptehNaHfKmudzDJ5qLD": "a902e896-7baa-4f3e-b5ab-aba3173990e7",
+    "4uDHPTTzhtmSx9VgLtVU": "050dc10e-b00b-477e-a9c1-909897623795",
+    "55YY51EIzX3i336a90EB": "g158fcaf-g1b0-g46f-g30d-ga9800fdda68",
+    "5pwORarWPWH5XqL3DsCO": "g158fcaf-g1b0-g46f-g30d-ga9800fdda68",
+    "60IHS5XFw8gowmbWOEh7": "fc58d611-f006-feb5-fd85-fa145dd0c69e",
+    "6CaebyKYbyPpsiH9BXW8": "fc58d611-f006-feb5-fd85-fa145dd0c69e",
+    "6kc6T0DIRHkqcKx3UeK6": "fc58d611-f006-feb5-fd85-fa145dd0c69e",
+    "6liRHQlzFPeV0bb07f9q": "002838fe-82f8-44e7-9508-db3f71a5589c",
+    "7Q7IF7mtixq3LY18EIAZ": "a902e896-7baa-4f3e-b5ab-aba3173990e7",
+    "7fHKILSJXi2YMWvuQwCu": "3bb7b9a0-3edf-43ff-8892-ab7fcd39568a",
+    "9qJu0KQXQVL9QuxATkkg": "fc58d611-f006-feb5-fd85-fa145dd0c69e",
+    "CFaoMXpzqfwRXeM4kH74": "fc58d611-f006-feb5-fd85-fa145dd0c69e",
+    "CYiV6y0XmWqzYgahjsN5": "3bb7b9a0-3edf-43ff-8892-ab7fcd39568a",
+    "CaiqOVabPUgEW7aoSBTW": "fc58d611-f006-feb5-fd85-fa145dd0c69e",
+    "CnsexjTxPtgEOQqHNESe": "fc58d611-f006-feb5-fd85-fa145dd0c69e",
+    "DeCWWChbuN82UYOebVPr": "3bb7b9a0-3edf-43ff-8892-ab7fcd39568a",
+    "DmSwjElUuwtM6L73ThHz": "fc58d611-f006-feb5-fd85-fa145dd0c69e",
+    "E0hqn5WdQTVpiOTOT22C": "fc58d611-f006-feb5-fd85-fa145dd0c69e",
+    "ENO80KUDN2mllMFRfixq": "g158fcaf-g1b0-g46f-g30d-ga9800fdda68",
+    "EPi6ymtL9nwH8aKtPXr5": "fc58d611-f006-feb5-fd85-fa145dd0c69e",
+    "F8l8Xn4I4lgrXQnkbhs8": "3bb7b9a0-3edf-43ff-8892-ab7fcd39568a",
+    "GieOoQ0jKliJK9Lejjzc": "g158fcaf-g1b0-g46f-g30d-ga9800fdda68",
+    "IGsTo962ocv8A6HZ86KU": "3bb7b9a0-3edf-43ff-8892-ab7fcd39568a",
+    "IVObrHya7pzOxfrItpca": "a902e896-7baa-4f3e-b5ab-aba3173990e7",
+    "JKHxdtCokcho1xUBkYNH": "aff6c7e4-5bbb-4e70-8e5b-2106067e73c4",
+    "KQq6lVV2UkSJsGIQRIiy": "06d385b9-57f3-4ee2-ba52-44080ef8b5f3",
+    "L3P5NekLECY8upy3CZQp": "06d385b9-57f3-4ee2-ba52-44080ef8b5f3",
+    "MxHDgSMyo9kHpeUoJIbx": "a0c251cc-8b63-4063-a9cb-a6f09ec44f30",
+    "O033Arv0z65LRKuW5dZK": "22370f9a-b68c-4fe4-941e-c0a9e5198fc3",
+    "OnNi80gsl87fRYzQq3QX": "06d385b9-57f3-4ee2-ba52-44080ef8b5f3",
+    "Ppc6miskv3Y1VFVx6kxj": "5972e663-9f6e-46b6-bafa-3ac29ecaa4df",
+    "PtVOvegIzcjG6GtaJKBX": "a902e896-7baa-4f3e-b5ab-aba3173990e7",
+    "Q9jERD2IAYmMxLwUYgQA": "g158fcaf-g1b0-g46f-g30d-ga9800fdda68",
+    "QhyhY8vcX9Lrq7WdG8Ks": "g158fcaf-g1b0-g46f-g30d-ga9800fdda68",
+    "RIkCyn4q63bJchHIm0sQ": "5972e663-9f6e-46b6-bafa-3ac29ecaa4df",
+    "RPt1tW7xN6M8m5U3L5Fq": "050dc10e-b00b-477e-a9c1-909897623795",
+    "Rw71EJAYNd1e3r4hpnNG": "g158fcaf-g1b0-g46f-g30d-ga9800fdda68",
+    "T2uIuoFkAsxBFjLlleTD": "g158fcaf-g1b0-g46f-g30d-ga9800fdda68",
+    "UYZF1tVL7BKkRjR4330Y": "3bb7b9a0-3edf-43ff-8892-ab7fcd39568a",
+    "UySewExwLT2gEDf9OFnX": "22370f9a-b68c-4fe4-941e-c0a9e5198fc3",
+    "VyfABgs7jkJSXBq3EOMh": "06d385b9-57f3-4ee2-ba52-44080ef8b5f3",
+    "aHKS6qYHnfkmP1wT5m5r": "160e6b5d-cacd-43c3-9c9f-5fca66763d98",
+    "cYtmXk2P5jx6phFCnbu1": "3bb7b9a0-3edf-43ff-8892-ab7fcd39568a",
+    "etf4MQGiBuAl3NwRgmQj": "06d385b9-57f3-4ee2-ba52-44080ef8b5f3",
+    "f5qqZDVf9RDOuMUNi0v5": "160e6b5d-cacd-43c3-9c9f-5fca66763d98",
+    "fGpZ7YM2q4gCM0xjwDTT": "a902e896-7baa-4f3e-b5ab-aba3173990e7",
+    "fk7NQN16NK59uLYGz7Ld": "22370f9a-b68c-4fe4-941e-c0a9e5198fc3",
+    "ja6KK5GYIQ6dwWR0vo6y": "a902e896-7baa-4f3e-b5ab-aba3173990e7",
+    "lKm5jRr7Qoo6NQBTAusd": "a902e896-7baa-4f3e-b5ab-aba3173990e7",
+    "mFdDNflrqvoAbqnD137e": "5972e663-9f6e-46b6-bafa-3ac29ecaa4df",
+    "n56DxhKVDNbiS4bIINGL": "5972e663-9f6e-46b6-bafa-3ac29ecaa4df",
+    "qC52gRdjp74PeQey8XnD": "a0c251cc-8b63-4063-a9cb-a6f09ec44f30",
+    "qDOcg4hrnEwcPNsHGkD3": "a902e896-7baa-4f3e-b5ab-aba3173990e7",
+    "qQWs9y0DNpcwhcTNRU0u": "5972e663-9f6e-46b6-bafa-3ac29ecaa4df",
+    "sehzZqZj6Wm6OU4bBdym": "aff6c7e4-5bbb-4e70-8e5b-2106067e73c4",
+    "v01onzakjrAErtREIGiW": "aff6c7e4-5bbb-4e70-8e5b-2106067e73c4",
+    "vFdXYU5h5I4i3tcmNub2": "a0c251cc-8b63-4063-a9cb-a6f09ec44f30",
+    "w9vRUwaWNUWlLsUMx80t": "a902e896-7baa-4f3e-b5ab-aba3173990e7",
+    "wxy62BPFdiMgwCpbMvk0": "3bb7b9a0-3edf-43ff-8892-ab7fcd39568a",
+    "zIZYBfpzbwYikYYr8d5l": "22370f9a-b68c-4fe4-941e-c0a9e5198fc3",
+    "zKxTyW5JJ2tild2OeNoL": "002838fe-82f8-44e7-9508-db3f71a5589c"
+  },
+  "problems": [
+    {
+      "layouts": [
+        "qDOcg4hrnEwcPNsHGkD3",
+        "MxHDgSMyo9kHpeUoJIbx",
+        "JKHxdtCokcho1xUBkYNH",
+        "sehzZqZj6Wm6OU4bBdym",
+        "qC52gRdjp74PeQey8XnD",
+        "fGpZ7YM2q4gCM0xjwDTT"
+      ],
+      "cluster_labels": [
+        0,
+        1,
+        2,
+        2,
+        1,
+        0
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "aHKS6qYHnfkmP1wT5m5r",
+        "f5qqZDVf9RDOuMUNi0v5",
+        "9qJu0KQXQVL9QuxATkkg",
+        "F8l8Xn4I4lgrXQnkbhs8",
+        "CaiqOVabPUgEW7aoSBTW",
+        "CYiV6y0XmWqzYgahjsN5"
+      ],
+      "cluster_labels": [
+        2,
+        2,
+        0,
+        1,
+        0,
+        1
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "OnNi80gsl87fRYzQq3QX",
+        "7Q7IF7mtixq3LY18EIAZ",
+        "RPt1tW7xN6M8m5U3L5Fq",
+        "fGpZ7YM2q4gCM0xjwDTT",
+        "4uDHPTTzhtmSx9VgLtVU",
+        "KQq6lVV2UkSJsGIQRIiy"
+      ],
+      "cluster_labels": [
+        0,
+        1,
+        2,
+        1,
+        2,
+        0
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "PtVOvegIzcjG6GtaJKBX",
+        "2icW9N7aPGArHLkopPRX",
+        "ja6KK5GYIQ6dwWR0vo6y",
+        "60IHS5XFw8gowmbWOEh7",
+        "02OCmOVL2enVqZDHN1Ac",
+        "Rw71EJAYNd1e3r4hpnNG"
+      ],
+      "cluster_labels": [
+        1,
+        2,
+        1,
+        0,
+        0,
+        2
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "UYZF1tVL7BKkRjR4330Y",
+        "n56DxhKVDNbiS4bIINGL",
+        "0hy0NgqYDUdHLoBy13UB",
+        "fGpZ7YM2q4gCM0xjwDTT",
+        "IVObrHya7pzOxfrItpca",
+        "wxy62BPFdiMgwCpbMvk0"
+      ],
+      "cluster_labels": [
+        0,
+        1,
+        1,
+        2,
+        2,
+        0
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "9qJu0KQXQVL9QuxATkkg",
+        "E0hqn5WdQTVpiOTOT22C",
+        "2GagOUPHI9oByZN8oNry",
+        "zKxTyW5JJ2tild2OeNoL",
+        "w9vRUwaWNUWlLsUMx80t",
+        "6liRHQlzFPeV0bb07f9q"
+      ],
+      "cluster_labels": [
+        0,
+        0,
+        1,
+        2,
+        1,
+        2
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "fk7NQN16NK59uLYGz7Ld",
+        "L3P5NekLECY8upy3CZQp",
+        "7Q7IF7mtixq3LY18EIAZ",
+        "lKm5jRr7Qoo6NQBTAusd",
+        "UySewExwLT2gEDf9OFnX",
+        "OnNi80gsl87fRYzQq3QX"
+      ],
+      "cluster_labels": [
+        0,
+        1,
+        2,
+        2,
+        0,
+        1
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "2GagOUPHI9oByZN8oNry",
+        "02OCmOVL2enVqZDHN1Ac",
+        "ENO80KUDN2mllMFRfixq",
+        "2icW9N7aPGArHLkopPRX",
+        "IVObrHya7pzOxfrItpca",
+        "CaiqOVabPUgEW7aoSBTW"
+      ],
+      "cluster_labels": [
+        1,
+        0,
+        2,
+        2,
+        1,
+        0
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "Ppc6miskv3Y1VFVx6kxj",
+        "n56DxhKVDNbiS4bIINGL",
+        "UYZF1tVL7BKkRjR4330Y",
+        "CFaoMXpzqfwRXeM4kH74",
+        "IGsTo962ocv8A6HZ86KU",
+        "9qJu0KQXQVL9QuxATkkg"
+      ],
+      "cluster_labels": [
+        1,
+        1,
+        2,
+        0,
+        2,
+        0
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "2icW9N7aPGArHLkopPRX",
+        "60IHS5XFw8gowmbWOEh7",
+        "fGpZ7YM2q4gCM0xjwDTT",
+        "2GagOUPHI9oByZN8oNry",
+        "9qJu0KQXQVL9QuxATkkg",
+        "T2uIuoFkAsxBFjLlleTD"
+      ],
+      "cluster_labels": [
+        2,
+        1,
+        0,
+        0,
+        1,
+        2
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "lKm5jRr7Qoo6NQBTAusd",
+        "qDOcg4hrnEwcPNsHGkD3",
+        "6CaebyKYbyPpsiH9BXW8",
+        "9qJu0KQXQVL9QuxATkkg",
+        "qC52gRdjp74PeQey8XnD",
+        "vFdXYU5h5I4i3tcmNub2"
+      ],
+      "cluster_labels": [
+        0,
+        0,
+        1,
+        1,
+        2,
+        2
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "3ptehNaHfKmudzDJ5qLD",
+        "zIZYBfpzbwYikYYr8d5l",
+        "etf4MQGiBuAl3NwRgmQj",
+        "OnNi80gsl87fRYzQq3QX",
+        "lKm5jRr7Qoo6NQBTAusd",
+        "fk7NQN16NK59uLYGz7Ld"
+      ],
+      "cluster_labels": [
+        0,
+        1,
+        2,
+        2,
+        0,
+        1
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "CFaoMXpzqfwRXeM4kH74",
+        "QhyhY8vcX9Lrq7WdG8Ks",
+        "02OCmOVL2enVqZDHN1Ac",
+        "2icW9N7aPGArHLkopPRX",
+        "PtVOvegIzcjG6GtaJKBX",
+        "fGpZ7YM2q4gCM0xjwDTT"
+      ],
+      "cluster_labels": [
+        1,
+        2,
+        1,
+        2,
+        0,
+        0
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "2icW9N7aPGArHLkopPRX",
+        "CnsexjTxPtgEOQqHNESe",
+        "PtVOvegIzcjG6GtaJKBX",
+        "qDOcg4hrnEwcPNsHGkD3",
+        "Q9jERD2IAYmMxLwUYgQA",
+        "9qJu0KQXQVL9QuxATkkg"
+      ],
+      "cluster_labels": [
+        2,
+        1,
+        0,
+        0,
+        2,
+        1
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "mFdDNflrqvoAbqnD137e",
+        "UYZF1tVL7BKkRjR4330Y",
+        "cYtmXk2P5jx6phFCnbu1",
+        "IVObrHya7pzOxfrItpca",
+        "n56DxhKVDNbiS4bIINGL",
+        "PtVOvegIzcjG6GtaJKBX"
+      ],
+      "cluster_labels": [
+        2,
+        1,
+        1,
+        0,
+        2,
+        0
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "DeCWWChbuN82UYOebVPr",
+        "UYZF1tVL7BKkRjR4330Y",
+        "qQWs9y0DNpcwhcTNRU0u",
+        "n56DxhKVDNbiS4bIINGL",
+        "IVObrHya7pzOxfrItpca",
+        "ja6KK5GYIQ6dwWR0vo6y"
+      ],
+      "cluster_labels": [
+        1,
+        1,
+        2,
+        2,
+        0,
+        0
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "7Q7IF7mtixq3LY18EIAZ",
+        "v01onzakjrAErtREIGiW",
+        "qDOcg4hrnEwcPNsHGkD3",
+        "sehzZqZj6Wm6OU4bBdym",
+        "EPi6ymtL9nwH8aKtPXr5",
+        "9qJu0KQXQVL9QuxATkkg"
+      ],
+      "cluster_labels": [
+        0,
+        2,
+        0,
+        2,
+        1,
+        1
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "GieOoQ0jKliJK9Lejjzc",
+        "3ptehNaHfKmudzDJ5qLD",
+        "PtVOvegIzcjG6GtaJKBX",
+        "02OCmOVL2enVqZDHN1Ac",
+        "DmSwjElUuwtM6L73ThHz",
+        "2icW9N7aPGArHLkopPRX"
+      ],
+      "cluster_labels": [
+        2,
+        0,
+        0,
+        1,
+        1,
+        2
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "9qJu0KQXQVL9QuxATkkg",
+        "3ptehNaHfKmudzDJ5qLD",
+        "DmSwjElUuwtM6L73ThHz",
+        "2icW9N7aPGArHLkopPRX",
+        "2GagOUPHI9oByZN8oNry",
+        "5pwORarWPWH5XqL3DsCO"
+      ],
+      "cluster_labels": [
+        1,
+        0,
+        1,
+        2,
+        0,
+        2
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "IVObrHya7pzOxfrItpca",
+        "02OCmOVL2enVqZDHN1Ac",
+        "lKm5jRr7Qoo6NQBTAusd",
+        "55YY51EIzX3i336a90EB",
+        "6CaebyKYbyPpsiH9BXW8",
+        "2icW9N7aPGArHLkopPRX"
+      ],
+      "cluster_labels": [
+        0,
+        1,
+        0,
+        2,
+        1,
+        2
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "ja6KK5GYIQ6dwWR0vo6y",
+        "7fHKILSJXi2YMWvuQwCu",
+        "lKm5jRr7Qoo6NQBTAusd",
+        "n56DxhKVDNbiS4bIINGL",
+        "UYZF1tVL7BKkRjR4330Y",
+        "RIkCyn4q63bJchHIm0sQ"
+      ],
+      "cluster_labels": [
+        0,
+        1,
+        0,
+        2,
+        1,
+        2
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "OnNi80gsl87fRYzQq3QX",
+        "O033Arv0z65LRKuW5dZK",
+        "fk7NQN16NK59uLYGz7Ld",
+        "lKm5jRr7Qoo6NQBTAusd",
+        "VyfABgs7jkJSXBq3EOMh",
+        "fGpZ7YM2q4gCM0xjwDTT"
+      ],
+      "cluster_labels": [
+        1,
+        0,
+        0,
+        2,
+        1,
+        2
+      ],
+      "n_clusters": 3
+    },
+    {
+      "layouts": [
+        "lKm5jRr7Qoo6NQBTAusd",
+        "02OCmOVL2enVqZDHN1Ac",
+        "MxHDgSMyo9kHpeUoJIbx",
+        "vFdXYU5h5I4i3tcmNub2",
+        "w9vRUwaWNUWlLsUMx80t",
+        "6kc6T0DIRHkqcKx3UeK6"
+      ],
+      "cluster_labels": [
+        0,
+        1,
+        2,
+        2,
+        0,
+        1
+      ],
+      "n_clusters": 3
+    }
+  ]
+}

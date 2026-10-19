@@ -237,6 +237,8 @@ class OpenAIBatchRunner:
         jsonl_lines: List[str] = []
         for req in requests:
             content: List[dict] = []
+            if req.model_input.text:
+                content.append({"type": "text", "text": req.model_input.text})
             for img in req.model_input.images:
                 url = _to_url(
                     img, self.bucket, job_prefix, self.credentials_path
@@ -244,8 +246,6 @@ class OpenAIBatchRunner:
                 content.append(
                     {"type": "image_url", "image_url": {"url": url}}
                 )
-            if req.model_input.text:
-                content.append({"type": "text", "text": req.model_input.text})
 
             body: dict = {
                 "model": self.model_id,
@@ -483,6 +483,18 @@ class AnthropicBatchRunner:
 # ═══════════════════════════════════════════════════════════════════════════
 # Gemini / Vertex AI Batch Prediction
 # ═══════════════════════════════════════════════════════════════════════════
+
+
+def _gemini_request_key(request: dict) -> str:
+    """Key a Gemini batch request by the text and file URIs of its parts."""
+    key: List[Optional[str]] = []
+    for content in request.get("contents") or []:
+        for part in content.get("parts") or []:
+            file_data = part.get("fileData") or part.get("file_data") or {}
+            key.append(
+                part.get("text") or file_data.get("fileUri") or file_data.get("file_uri")
+            )
+    return json.dumps(key)
 
 
 class GeminiBatchRunner:
@@ -741,6 +753,14 @@ class GeminiBatchRunner:
     ) -> Dict[str, BatchResult]:
         from .gcs import download_text, list_blobs
 
+        input_text = download_text(
+            self.bucket, f"{job_prefix}/input.jsonl", self.credentials_path
+        )
+        pending: Dict[str, List[str]] = {}
+        for custom_id, line in zip(ordered_ids, input_text.strip().split("\n")):
+            key = _gemini_request_key(json.loads(line)["request"])
+            pending.setdefault(key, []).append(custom_id)
+
         output_blob_prefix = f"{job_prefix}/output/"
         blob_names = list_blobs(
             self.bucket, output_blob_prefix, self.credentials_path
@@ -756,31 +776,33 @@ class GeminiBatchRunner:
                     output_lines.append(json.loads(line))
 
         results: Dict[str, BatchResult] = {}
-        for i, custom_id in enumerate(ordered_ids):
-            if i < len(output_lines):
-                out = output_lines[i]
-                status = out.get("status", "")
-                response = out.get("response", {})
-                candidates = response.get("candidates", [])
+        for out in output_lines:
+            ids = pending.get(_gemini_request_key(out.get("request") or {}))
+            if not ids:
+                continue
+            custom_id = ids.pop(0)
+            status = out.get("status", "")
+            response = out.get("response", {})
+            candidates = response.get("candidates", [])
 
-                if status and not candidates:
-                    results[custom_id] = BatchResult(
-                        custom_id=custom_id,
-                        model_output=ModelOutput(text=""),
-                        error=status,
-                    )
-                else:
-                    text = ""
-                    if candidates:
-                        parts = (
-                            candidates[0].get("content", {}).get("parts", [])
-                        )
-                        text = parts[0].get("text", "") if parts else ""
-                    results[custom_id] = BatchResult(
-                        custom_id=custom_id,
-                        model_output=ModelOutput(text=text),
-                    )
+            if status and not candidates:
+                results[custom_id] = BatchResult(
+                    custom_id=custom_id,
+                    model_output=ModelOutput(text=""),
+                    error=status,
+                )
             else:
+                text = ""
+                if candidates:
+                    parts = candidates[0].get("content", {}).get("parts", [])
+                    text = parts[0].get("text", "") if parts else ""
+                results[custom_id] = BatchResult(
+                    custom_id=custom_id,
+                    model_output=ModelOutput(text=text),
+                )
+
+        for custom_id in ordered_ids:
+            if custom_id not in results:
                 results[custom_id] = BatchResult(
                     custom_id=custom_id,
                     model_output=ModelOutput(text=""),
