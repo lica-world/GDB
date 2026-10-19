@@ -28,8 +28,10 @@ about these attributes, and avoids issuing 9 separate prompts per sample.
 
 Layer order (`layout-9`), image rotation (`layout-10`), crop shape (`layout-11`), and frame
 detection (`layout-12`) use the nested component tree, image alt text, and element subtypes of
-the v1 Lica layouts; build their samples with
-`python scripts/build_lica_v1_tasks.py --dataset-root data/gdb-dataset`.
+the v1 Lica layouts. Their samples ship in `benchmarks/layout/` (built with
+`scripts/build_lica_v1_tasks.py`); copy them into `data/gdb-dataset/benchmarks/layout/`. The
+images they reference are the renders in `lica-data/`, also available from the
+[LICA dataset](https://huggingface.co/datasets/lica-world/lica-dataset).
 
 ## Setup
 
